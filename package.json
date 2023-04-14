@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon ./bin/www.ts",
     "start:dev": "cross-env NODE_ENV=dev nodemon ./dist/bin/www",
-    "start:production": "cross-env NODE_ENV=production note ./dist/bin/www",
+    "start:production": "cross-env NODE_ENV=production node ./dist/bin/www",
     "build": "tsc"
   },
   "dependencies": {
