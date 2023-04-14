@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon ./bin/www.ts",
-    "start:dev": "cross-env NODE_ENV=dev nodemon ./dist/bin/www",
-    "start:production": "cross-env NODE_ENV=production node ./dist/bin/www",
+    "start:dev": "cross-env NODE_ENV=dev nodemon ./bin/www.ts",
+    "start:production": "cross-env NODE_ENV=production node ./bin/www.ts",
+    "production": "cross-env NODE_ENV=production nodemon ./dist/bin/www",
     "build": "tsc"
   },
   "dependencies": {
