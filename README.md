@@ -9,6 +9,7 @@ Release: v1.0.0
 - middleware // middleware 管理
 - models // mongoose model 跟 ts interface
 - routes // api routes
+- dist // Render 部屬用
   
 Install
 - copy .env.example to .env, 設定資料庫連線、自定義的變數
