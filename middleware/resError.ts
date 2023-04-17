@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Response, NextFunction } from 'express';
 import { IError } from "../models/error";
 
 // express 錯誤處理
@@ -29,4 +29,20 @@ const resErrorDev = (err: IError, res: Response) => {
   });
 };
 
-module.exports = { resErrorProd, resErrorDev }
+// 錯誤處理
+const resErrorAll = (err: IError, req: Request, res: Response, next: NextFunction) => {
+  // dev
+  err.statusCode = err.statusCode || 500;
+  if (process.env.NODE_ENV === 'dev') {
+    return resErrorDev(err, res);
+  } 
+  // production
+  if (err.name === 'ValidationError'){
+    err.message = "資料欄位未填寫正確，請重新輸入！"
+    err.isOperational = true;
+    return resErrorProd(err, res)
+  }
+  resErrorProd(err, res)
+};
+
+module.exports = { resErrorProd, resErrorDev, resErrorAll }

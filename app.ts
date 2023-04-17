@@ -1,6 +1,6 @@
 
-import express, { Request, Response, NextFunction } from 'express';
-import { IError } from "./models/error";
+import express from 'express';
+import notFound from "./service/notFound";
 
 // 套件
 var createError = require('http-errors');
@@ -17,7 +17,7 @@ require('./middleware/processError');
 // route
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
-const { resErrorProd, resErrorDev } = require('./middleware/resError');
+const { resErrorAll } = require('./middleware/resError');
 // express
 const app = express();
 
@@ -36,28 +36,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-// 處理無此路由
-app.use(function (req: Request, res: Response, next: NextFunction) {
-  res.status(404).send({
-    status: 'error',
-    massage: '無此路由'
-  })
-});
+// 404 路由
+app.use(notFound);
 
 // 錯誤處理
-app.use(function(err: IError, req: Request, res: Response, next: NextFunction) {
-  // dev
-  err.statusCode = err.statusCode || 500;
-  if (process.env.NODE_ENV === 'dev') {
-    return resErrorDev(err, res);
-  } 
-  // production
-  if (err.name === 'ValidationError'){
-    err.message = "資料欄位未填寫正確，請重新輸入！"
-    err.isOperational = true;
-    return resErrorProd(err, res)
-  }
-  resErrorProd(err, res)
-});
+app.use(resErrorAll);
 
 module.exports = app;
