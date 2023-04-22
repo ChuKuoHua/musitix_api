@@ -1,8 +1,9 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface Profiles {
-  password: string;
   username: string;
+  picture?: string;
+  password?: string;
 }
 
 export interface IUser extends Document {
@@ -48,7 +49,7 @@ const userSchema: Schema = new mongoose.Schema({
     select: false
   },
   picture: {
-    type: Buffer,
+    type: String,
     default: ""
   },
   role:{

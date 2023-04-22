@@ -1,5 +1,6 @@
 # Musitix API
 Release: v1.0.0
+Node: v18.15.0
 
 2023-04-14
 

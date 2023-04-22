@@ -11,7 +11,7 @@ const validator = require('validator');
 const checkPwd = require('../../service/pwdCheckError');
 
 const admin = {
-  // 登入
+  // NOTE 登入
   async login(req:AuthRequest, res: Response, next: NextFunction) {
     const { account, password } = req.body;
     if (!account || !password) {
@@ -36,7 +36,7 @@ const admin = {
     req.session.isLogin = true;
     generateSendAdminJWT(user,200,res);
   },
-  // 註冊
+  // NOTE 註冊
   async register(req: AuthRequest, res: Response, next: NextFunction) {
     let { email, account, username, password, confirmPassword } = req.body;
     const errorMsg = []
@@ -84,7 +84,7 @@ const admin = {
     });
     generateSendAdminJWT(newAdmin, 201, res);
   },
-  // 登出
+  // NOTE 登出
   async logout(req: AuthRequest, res:Response) {
     req.session.destroy(():void => {}) as Session & {};
     handleSuccess(res, '已登出')

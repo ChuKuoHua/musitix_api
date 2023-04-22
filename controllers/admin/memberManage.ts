@@ -5,7 +5,7 @@ const appError = require('../../service/appError');
 const User = require('../../models/users');
 
 const memberManage = {
-  // 會員資料
+  // NOTE 會員資料
   async usersList(req: searchRequest, res: Response, next: NextFunction) {
     // asc 遞增(由小到大，由舊到新) createdAt ; 
     // desc 遞減(由大到小、由新到舊) "-createdAt"
@@ -26,7 +26,7 @@ const memberManage = {
     
     handleSuccess(res, data);
   },
-  // 會員停用/啟用
+  // NOTE 會員停用/啟用
   async invalidUser(req: Request, res: Response, next: NextFunction) {
     let { userId, isDisabled } = req.body;
 

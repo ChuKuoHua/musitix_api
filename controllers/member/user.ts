@@ -13,7 +13,7 @@ const validator = require('validator');
 const checkPwd = require('../../service/pwdCheckError');
 
 const user = {
-  // 登入
+  // NOTE 登入
   async login(req:AuthRequest, res: Response, next: NextFunction) {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -38,7 +38,7 @@ const user = {
     req.session.isLogin = true;
     generateSendJWT(user,200,res);
   },
-  // 註冊
+  // NOTE 註冊
   async register(req: AuthRequest, res: Response, next: NextFunction) {
     let { email, username, password, confirmPassword } = req.body;
 
@@ -92,13 +92,13 @@ const user = {
       }
     }
   },
-  // 登出
+  // NOTE 登出
   async logout(req: AuthRequest, res:Response) {
     req.session.destroy(():void => {}) as Session & {};
     
     handleSuccess(res, '已登出')
   },
-  // 取得個人資料
+  // NOTE 取得個人資料
   async profile(req: AuthRequest, res:Response) {
     const { username, picture, email } = req.user
 
@@ -111,9 +111,9 @@ const user = {
 
     handleSuccess(res, data);
   },
-  // 更新個人資料
+  // NOTE 更新個人資料
   async updateProfiles (req: AuthRequest, res:Response, next: NextFunction) {
-    const { username, password, confirmPassword } = req.body;
+    const { username, picture, password, confirmPassword } = req.body;
     let { newPassword } = req.body;
     const updateData = {} as Profiles;
     const errorMsg = [];
@@ -151,7 +151,11 @@ const user = {
     if(errorMsg.length > 0) {
       return next(appError("400", errorMsg, next));
     }
-
+    // 判斷是否有上傳圖片
+    if(picture) {
+      updateData.picture = picture
+    }
+    // 判斷是否有修改密碼
     if(newPassword) {
       updateData.password = newPassword
     }
@@ -163,7 +167,7 @@ const user = {
     handleSuccess(res, '修改成功')
   },
 
-  // 更新個人圖片
+  // NOTE 上傳個人圖片
   async updatePicture (req: AuthRequest, res:Response, next: NextFunction) {
     const { picture } = req.body;
     // const allowedFormats = ['image/jpeg', 'image/png'];
