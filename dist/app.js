@@ -4,11 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const notFound_1 = __importDefault(require("./service/notFound"));
 // 套件
-var createError = require('http-errors');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const createError = require('http-errors');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 const cors = require('cors');
 // 資料庫連線
 require('./connections');
@@ -16,8 +17,11 @@ require('./connections');
 require('./middleware/processError');
 // route
 const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
-const { resErrorProd, resErrorDev } = require('./middleware/resError');
+const userRouter = require('./routes/member/user');
+const adminRouter = require('./routes/admin/admin');
+const memberManageRouter = require('./routes/admin/memberManage');
+const { resErrorAll } = require('./middleware/resError');
+const session = require('express-session');
 // express
 const app = (0, express_1.default)();
 // view engine setup
@@ -29,29 +33,26 @@ app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express_1.default.static(path.join(__dirname, 'public')));
+// 使用 session
+app.use(session({
+    secret: 'keyTokeId',
+    // 保存 session 值
+    resave: true,
+    // 無論有無 session cookie，每次請求都設置 session cookie
+    // 默認為 connect.sid
+    saveUninitialized: true,
+    // 當 secure 為 true 時，cookie 在 HTTP 中是無效，在 HTTPS 中才有效
+    cookie: ({ secure: false })
+}));
 // route
+// 前台
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
-// 處理無此路由
-app.use(function (req, res, next) {
-    res.status(404).send({
-        status: 'error',
-        massage: '無此路由'
-    });
-});
+app.use('/api/users', userRouter);
+// 後台
+app.use('/admin', adminRouter);
+app.use('/admin/users_mgmt', memberManageRouter);
+// 404 路由
+app.use(notFound_1.default);
 // 錯誤處理
-app.use(function (err, req, res, next) {
-    // dev
-    err.statusCode = err.statusCode || 500;
-    if (process.env.NODE_ENV === 'dev') {
-        return resErrorDev(err, res);
-    }
-    // production
-    if (err.name === 'ValidationError') {
-        err.message = "資料欄位未填寫正確，請重新輸入！";
-        err.isOperational = true;
-        return resErrorProd(err, res);
-    }
-    resErrorProd(err, res);
-});
+app.use(resErrorAll);
 module.exports = app;
