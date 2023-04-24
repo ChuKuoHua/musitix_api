@@ -22,6 +22,7 @@ const adminRouter = require('./routes/admin/admin');
 const memberManageRouter = require('./routes/admin/memberManage');
 const { resErrorAll } = require('./middleware/resError');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 // express
 const app = (0, express_1.default)();
 // view engine setup
@@ -42,7 +43,11 @@ app.use(session({
     // 默認為 connect.sid
     saveUninitialized: true,
     // 當 secure 為 true 時，cookie 在 HTTP 中是無效，在 HTTPS 中才有效
-    cookie: ({ secure: false })
+    cookie: ({ secure: false }),
+    store: new MongoStore({
+        mongoUrl: process.env.DATABASE,
+        ttl: 7 * 60 * 60 * 24, // 會話過期時間為 7 天
+    }),
 }));
 // route
 // 前台
