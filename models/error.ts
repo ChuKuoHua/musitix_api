@@ -1,11 +1,11 @@
 export interface IError extends Error {
-  statusCode?: number;
+  statusCode?: string | number;
   name: string;
   isOperational?: boolean;
-  status?: number
+  status?: number;
 }
 
 export interface HTTPError extends Error {
   syscall: string;
-  code: string;
+  code: string | number;
 }
