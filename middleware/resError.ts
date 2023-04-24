@@ -1,12 +1,11 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { IError } from "../models/error";
 
 // express 錯誤處理
 // 自訂 err 錯誤
-const resErrorProd = (err: IError, res: Response) => {
+const resErrorProd = (err: IError, res: Response, code: number) => {
   if (err.isOperational) {
-    err.statusCode = err.statusCode || 500
-    res.status(err.statusCode).send({
+    res.status(code).send({
       message: err.message
     });
   } else {
@@ -20,9 +19,8 @@ const resErrorProd = (err: IError, res: Response) => {
   }
 };
 // 開發環境錯誤
-const resErrorDev = (err: IError, res: Response) => {
-  err.statusCode = err.statusCode || 500
-  res.status(err.statusCode).send({
+const resErrorDev = (err: IError, res: Response, code: number) => {
+  res.status(code).send({
     message: err.message,
     error: err,
     stack: err.stack
@@ -31,18 +29,31 @@ const resErrorDev = (err: IError, res: Response) => {
 
 // 錯誤處理
 const resErrorAll = (err: IError, req: Request, res: Response, next: NextFunction) => {
+  const code: number = err.statusCode ? Number(err.statusCode) : 500
+  // 驗證 token
+  if(err.message === 'invalid signature') {
+    return res.status(code).send({
+      status: 'error',
+      message: '你尚未登入！'
+    });
+  } else if (err.message === 'invalid token') {
+    return res.status(code).send({
+      status: 'error',
+      message: '無效的 token'
+    });
+  }
+
   // dev
-  err.statusCode = err.statusCode || 500;
   if (process.env.NODE_ENV === 'dev') {
-    return resErrorDev(err, res);
+    return resErrorDev(err, res, code);
   } 
   // production
   if (err.name === 'ValidationError'){
     err.message = "資料欄位未填寫正確，請重新輸入！"
     err.isOperational = true;
-    return resErrorProd(err, res)
+    return resErrorProd(err, res, code)
   }
-  resErrorProd(err, res)
+  resErrorProd(err, res, code)
 };
 
 module.exports = { resErrorProd, resErrorDev, resErrorAll }

@@ -1,4 +1,4 @@
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', (err: string) => {
   // 記錄錯誤下來，等到服務都處理完後，停掉該 process
   console.error('Uncaughted Exception！');
   console.error(err);
@@ -6,6 +6,6 @@ process.on('uncaughtException', (err) => {
 });
 
 // 未捕捉到的 catch 
-process.on('unhandledRejection', (err, promise) => {
+process.on('unhandledRejection', (err: string, promise: string) => {
   console.error('未捕捉到的 rejection：', promise, '原因：', err);
 });

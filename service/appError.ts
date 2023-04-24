@@ -8,7 +8,7 @@ import { IError } from "../models/error";
  * @param next 
  */
 
-const appError = (httpStatus:number, errorMessage: string, next: NextFunction) => {
+const appError = (httpStatus: string | number, errorMessage: string, next: NextFunction) => {
   const error: IError = new Error(errorMessage);
   error.statusCode = httpStatus;
   error.isOperational = true; // 判斷是否為自定義的錯誤
