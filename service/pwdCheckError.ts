@@ -10,4 +10,4 @@ const checkPwd = (pwd: string) => {
   }
 }
 
-module.exports = checkPwd
+export default checkPwd

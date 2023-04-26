@@ -1,16 +1,14 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from "../../models/other";
-import { Profiles } from "../../models/users";
-import { HTTPError } from "../../models/error";
+import { AuthRequest } from '../../models/other';
+import User, { Profiles } from '../../models/users';
+import { HTTPError } from '../../models/error';
 import { Session } from 'express-session';
-
-const handleSuccess = require('../../service/handleSuccess');
-const { generateSendJWT } = require('../../middleware/auth');
-const appError = require('../../service/appError');
-const User = require('../../models/users');
-const bcrypt = require('bcryptjs');
-const validator = require('validator');
-const checkPwd = require('../../service/pwdCheckError');
+import appError from '../../service/appError';
+import handleSuccess from '../../service/handleSuccess';
+import checkPwd from '../../service/pwdCheckError';
+import { generateSendJWT } from '../../middleware/auth';
+import bcrypt from 'bcryptjs';
+import validator from 'validator';
 
 const user = {
   // NOTE 登入
@@ -36,7 +34,7 @@ const user = {
 
     req.session.role = user.role
     req.session.isLogin = true;
-    generateSendJWT(user,200,res);
+    generateSendJWT(user, 200, res);
   },
   // NOTE 註冊
   async register(req: AuthRequest, res: Response, next: NextFunction) {
@@ -127,26 +125,27 @@ const user = {
           email
         },
       ).select('+password');
-      const auth = await bcrypt.compare(password, user.password);
-      if(!auth){
-        return next(appError(400,'原密碼不正確',next));
+      if(user) {
+        const auth = await bcrypt.compare(password, user.password);
+        if(!auth){
+          return next(appError(400,'原密碼不正確',next));
+        }
+        if(!newPassword) {
+          return next(appError(400,'請輸入新密碼',next));
+        }
+        if(password === newPassword) {
+          return next(appError(400,'新密碼不可於原密碼相同',next));
+        }
+        // 密碼檢查
+        if(checkPwd(newPassword)) {
+          errorMsg.push(checkPwd(newPassword));
+        }
+  
+        if(newPassword !== confirmPassword){
+          errorMsg.push("密碼不一致");
+        }
+        newPassword = await bcrypt.hash(password,12);
       }
-      if(!newPassword) {
-        return next(appError(400,'請輸入新密碼',next));
-      }
-      if(password === newPassword) {
-        return next(appError(400,'新密碼不可於原密碼相同',next));
-      }
-      // 密碼檢查
-      if(checkPwd(newPassword)) {
-        errorMsg.push(checkPwd(newPassword));
-      }
-
-      if(newPassword !== confirmPassword){
-        errorMsg.push("密碼不一致");
-      }
-      newPassword = await bcrypt.hash(password,12);
-      
     }
     if(errorMsg.length > 0) {
       return next(appError("400", errorMsg, next));
@@ -208,4 +207,4 @@ const user = {
   // },
 }
 
-module.exports = user;
+export default user;
