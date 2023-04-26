@@ -36,3 +36,7 @@ export interface searchRequest extends Request {
     q: string;
   }
 }
+
+export interface imageRequest extends Request {
+  files: Express.Multer.File[];
+}

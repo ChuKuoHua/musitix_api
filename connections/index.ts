@@ -1,11 +1,18 @@
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-dotenv.config({path: './.env'})
-const pwd = process.env.DATABASE_PASSWORD ? process.env.DATABASE_PASSWORD : ''
+const dotenv = require('dotenv')
+dotenv.config({path: './.env'});
 
-const DB: string = process.env.DATABASE!.replace(
+let dataBase = process.env.DATABASE_DEV;
+let DBPassword: string | undefined = ''
+
+if(process.env.NODE_ENV !== 'dev') {
+  DBPassword = process.env.DATABASE_PASSWORD
+  dataBase = process.env.DATABASE
+}
+
+const DB: string = dataBase!.replace(
   '<PASSWORD>',
-  pwd
+  DBPassword!
 )
 
 // 連接資料庫

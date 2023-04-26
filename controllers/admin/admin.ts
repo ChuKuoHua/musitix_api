@@ -8,7 +8,7 @@ const appError = require('../../service/appError');
 const User = require('../../models/users');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
-const checkPwd = require('../../service/pwdCheckError');
+const checkFormatPwd = require('../../service/checkError');
 
 const admin = {
   // NOTE 登入
@@ -60,7 +60,7 @@ const admin = {
     }
 
     // 密碼檢查
-    const pwdError = checkPwd(password)
+    const pwdError = checkFormatPwd(password)
     if(pwdError) {
       errorMsg.push(pwdError)
     }
