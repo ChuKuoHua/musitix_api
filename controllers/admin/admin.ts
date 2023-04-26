@@ -1,14 +1,13 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from "../../models/other";
+import { AuthRequest } from '../../models/other';
 import { Session } from 'express-session';
-
-const handleSuccess = require('../../service/handleSuccess');
-const { generateSendAdminJWT } = require('../../middleware/admin');
-const appError = require('../../service/appError');
-const User = require('../../models/users');
-const bcrypt = require('bcryptjs');
-const validator = require('validator');
-const checkPwd = require('../../service/pwdCheckError');
+import appError from '../../service/appError';
+import handleSuccess from '../../service/handleSuccess';
+import checkPwd from '../../service/pwdCheckError';
+import { generateSendAdminJWT } from '../../middleware/admin';
+import User from '../../models/users';
+import bcrypt from 'bcryptjs';
+import validator from 'validator';
 
 const admin = {
   // NOTE 登入
@@ -34,7 +33,7 @@ const admin = {
     
     req.session.role = user.role
     req.session.isLogin = true;
-    generateSendAdminJWT(user,200,res);
+    generateSendAdminJWT(user, 200, res);
   },
   // NOTE 註冊
   async register(req: AuthRequest, res: Response, next: NextFunction) {
@@ -91,4 +90,4 @@ const admin = {
   },
 }
 
-module.exports = admin;
+export default admin;

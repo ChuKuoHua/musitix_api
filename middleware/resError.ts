@@ -56,4 +56,8 @@ const resErrorAll = (err: IError, req: Request, res: Response, next: NextFunctio
   resErrorProd(err, res, code)
 };
 
-module.exports = { resErrorProd, resErrorDev, resErrorAll }
+export {
+  resErrorProd,
+  resErrorDev,
+  resErrorAll
+}

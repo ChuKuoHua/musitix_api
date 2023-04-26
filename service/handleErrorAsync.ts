@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-function handleErrorAsync(func: (req: Request, res: Response, next: NextFunction) => Promise<unknown>) {
+function handleErrorAsync(func: (req: any, res: Response, next: NextFunction) => Promise<unknown>) {
   // func 先將 async fun 帶入參數儲存
   // middleware 先接住 router 資料
   return function (req: Request, res: Response, next: NextFunction) {
@@ -12,4 +12,4 @@ function handleErrorAsync(func: (req: Request, res: Response, next: NextFunction
   };
 }
 
-module.exports = handleErrorAsync
+export default handleErrorAsync

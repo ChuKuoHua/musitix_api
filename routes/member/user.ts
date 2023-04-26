@@ -1,9 +1,9 @@
 import express from 'express';
+import handleErrorAsync from '../../service/handleErrorAsync';
+import userControllers from '../../controllers/member/user';
+import { isAuth } from '../../middleware/auth';
 
 const router = express.Router();
-const handleErrorAsync = require('../../service/handleErrorAsync');
-const userControllers = require('../../controllers/member/user');
-const {isAuth} = require('../../middleware/auth');
 
 // 登入
 router.post('/login', handleErrorAsync(userControllers.login));
@@ -18,4 +18,4 @@ router.patch('/profiles', isAuth, handleErrorAsync(userControllers.updateProfile
 // 修改圖片
 router.patch('/picture', isAuth, handleErrorAsync(userControllers.updatePicture));
 
-module.exports = router;
+export default router;

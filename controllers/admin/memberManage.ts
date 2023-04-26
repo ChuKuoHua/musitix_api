@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { searchRequest } from "../../models/other";
-const handleSuccess = require('../../service/handleSuccess');
-const appError = require('../../service/appError');
-const User = require('../../models/users');
+import appError from '../../service/appError';
+import handleSuccess from '../../service/handleSuccess';
+import User from '../../models/users';
 
 const memberManage = {
   // NOTE 會員資料
@@ -53,4 +53,4 @@ const memberManage = {
   },
 }
 
-module.exports = memberManage;
+export default memberManage;
