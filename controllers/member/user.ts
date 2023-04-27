@@ -1,16 +1,14 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest, imageRequest } from "../../models/other";
-import { Profiles } from "../../models/users";
-import { HTTPError } from "../../models/error";
-import { Session } from "express-session";
+import { AuthRequest, imageRequest } from '../../models/other';
+import User, { Profiles } from '../../models/users';
+import { HTTPError } from '../../models/error';
+import { Session } from 'express-session';
 import { v4 as uuidv4 } from 'uuid';
-
-const handleSuccess = require('../../service/handleSuccess');
-const { generateSendJWT } = require('../../middleware/auth');
-const appError = require('../../service/appError');
-const User = require('../../models/users');
-const bcrypt = require('bcryptjs');
-const {checkPwd, checkRegister} = require('../../service/checkError');
+import appError from '../../service/appError';
+import handleSuccess from '../../service/handleSuccess';
+import { generateSendJWT } from '../../middleware/auth';
+import bcrypt from 'bcryptjs';
+import {checkPwd, checkRegister} from'../../service/checkError';
 
 // 引入上傳圖片會用到的套件
 const firebaseAdmin = require('../../middleware/firebase');
@@ -21,7 +19,7 @@ const user = {
   async login(req: AuthRequest, res: Response, next: NextFunction) {
     const { email, password } = req.body;
     if (!email || !password) {
-      return next(appError( 400,'帳號或密碼錯誤',next));
+      return next(appError(400, '帳號或密碼錯誤', next));
     }
     const user = await User.findOne(
       {
@@ -31,16 +29,16 @@ const user = {
       },
     ).select('+password');
     if(!user) {
-      return next(appError( 401,'無此帳號或已停用',next));
+      return next(appError( 401, '無此會員或已停用', next));
     }
     const auth = await bcrypt.compare(password, user.password);
     if(!auth){
-      return next(appError(400,'您的密碼不正確',next));
+      return next(appError(400, '您的密碼不正確', next));
     }
 
     req.session.role = user.role
     req.session.isLogin = true;
-    generateSendJWT(user,200,res);
+    generateSendJWT(user, 200, res);
   },
   // NOTE 註冊
   async register(req: AuthRequest, res: Response, next: NextFunction) {
@@ -57,7 +55,7 @@ const user = {
     })
 
     if(userCheck !== null) {
-      return next(appError(400,"此名稱已被使用",next));
+      return next(appError(400, "此名稱已被使用", next));
     }
 
     try {
@@ -72,9 +70,9 @@ const user = {
     } catch (error) {
       // 不打資料庫，使用 mongoose 回傳的錯誤檢查  
       if(error && (error as HTTPError).code === 11000) {
-        return next(appError(400,"此 Email 已使用",next));
+        return next(appError(400, "此 Email 已使用", next));
       } else {
-        return next(appError(400,error,next));
+        return next(appError(400, error, next));
       }
     }
   },
@@ -98,50 +96,53 @@ const user = {
     handleSuccess(res, data);
   },
   // NOTE 更新個人資料
-  async updateProfiles (req: AuthRequest, res:Response, next: NextFunction) {
-    const { username, picture, password, confirmPassword } = req.body;
-    let { newPassword } = req.body;
+  async updateProfiles (req: AuthRequest, res: Response, next: NextFunction) {
+    const { username, picture } = req.body;
     const updateData = {} as Profiles;
-    const errorMsg = [];
     if(!username) {
-      errorMsg.push("暱稱不得為空值");
+      // errorMsg.push("暱稱不得為空值");
+      return next(appError("400", '暱稱不得為空值', next));
     }
-    if(password) {
-      const email = req.user.email
-      const user = await User.findOne(
-        {
-          email
-        },
-      ).select('+password');
-      const auth = await bcrypt.compare(password, user.password);
-      if(!auth){
-        return next(appError(400,'原密碼不正確',next));
-      }
-      if(!newPassword) {
-        return next(appError(400,'請輸入新密碼',next));
-      }
-      if(password === newPassword) {
-        return next(appError(400,'新密碼不可與原密碼相同',next));
-      }
-      // 密碼檢查
-      const pwdError = checkPwd(newPassword, confirmPassword)
-      if(pwdError) {
-        errorMsg.push(pwdError)
-      }
-
-      newPassword = await bcrypt.hash(password,12);
-    }
-    if(errorMsg.length > 0) {
-      return next(appError("400", errorMsg, next));
-    }
+    // if(password) {
+    //   const email = req.user.email
+    //   const user = await User.findOne(
+    //     {
+    //       email
+    //     },
+    //   ).select('+password');
+    //   if(user) {
+    //     const auth = await bcrypt.compare(password, user.password);
+    //     if(!auth){
+    //       return next(appError(400,'原密碼不正確',next));
+    //     }
+    //     if(!newPassword) {
+    //       return next(appError(400,'請輸入新密碼',next));
+    //     }
+    //     if(password === newPassword) {
+    //       return next(appError(400,'新密碼不可於原密碼相同',next));
+    //     }
+    //     // 密碼檢查
+    //     if(checkPwdFormat(newPassword)) {
+    //       errorMsg.push(checkPwdFormat(newPassword));
+    //     }
+  
+    //     if(newPassword !== confirmPassword){
+    //       errorMsg.push("密碼不一致");
+    //     }
+    //     newPassword = await bcrypt.hash(password,12);
+    //   }
+    // }
+    // if(errorMsg.length > 0) {
+    //   return next(appError("400", errorMsg, next));
+    // }
     // 判斷是否有上傳圖片
     if(picture) {
       updateData.picture = picture
     }
     // 判斷是否有修改密碼
-    if(newPassword) {
-      updateData.password = newPassword
-    }
+    // if(newPassword) {
+    //   updateData.password = newPassword
+    // }
     updateData.username = username
     
     await User.findByIdAndUpdate(req.user.id, {
@@ -184,43 +185,45 @@ const user = {
     blobStream.end(file.buffer);
   },
   // 更新密碼
-  // async updatePassword (req: AuthRequest, res:Response, next: NextFunction) {
-  //   let { password, newPassword, confirmPassword } = req.body;
-  //   const email = req.user.email
-  //   const user = await User.findOne(
-  //     {
-  //       email
-  //     },
-  //   ).select('+password');
-  //   const auth = await bcrypt.compare(password, user.password);
-  //   if(!auth){
-  //     return next(appError(400, '原密碼不正確', next));
-  //   }
-  //   if(!newPassword) {
-  //     return next(appError(400, '請輸入新密碼', next));
-  //   }
-  //   if(password === newPassword) {
-  //     return next(appError(400, '新密碼不可與原密碼相同', next));
-  //   }
-  //   const errorMsg = []
-  //   // 密碼檢查
-  //   const pwdError = checkPwd(password, newPassword)
-  //   if(pwdError) {
-  //     errorMsg.push(pwdError)
-  //   }
-
-  //   if(errorMsg.length > 0) {
-  //     return next(appError(400, errorMsg, next));
-  //   }
-  //   newPassword = await bcrypt.hash(password,12);
-    
-  //   await User.findByIdAndUpdate(req.user.id,
-  //     {
-  //       password: newPassword
-  //     }
-  //   );
-  //   generateSendJWT('密碼已修改',200,res)
-  // },
+  async updatePassword (req: AuthRequest, res:Response, next: NextFunction) {
+    let { password, newPassword, confirmPassword } = req.body;
+    const email = req.user.email
+    const user = await User.findOne(
+      {
+        email
+      },
+    ).select('+password');
+    if(user) {
+      const auth = await bcrypt.compare(password, user.password);
+      if(!auth){
+        return next(appError(400, '原密碼不正確', next));
+      }
+      if(!newPassword) {
+        return next(appError(400, '請輸入新密碼', next));
+      }
+      if(password === newPassword) {
+        return next(appError(400, '新密碼不可與原密碼相同', next));
+      }
+      const errorMsg = []
+      // 密碼檢查
+      const pwdError = checkPwd(newPassword, confirmPassword)
+      if(pwdError) {
+        errorMsg.push(pwdError)
+      }
+  
+      if(errorMsg.length > 0) {
+        return next(appError(400, errorMsg, next));
+      }
+      newPassword = await bcrypt.hash(password, 12);
+      
+      await User.findByIdAndUpdate(req.user.id,
+        {
+          password: newPassword
+        }
+      );
+      handleSuccess(res, '密碼已修改');
+    }
+  },
 }
 
-module.exports = user;
+export default user;

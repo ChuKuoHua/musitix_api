@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { searchRequest } from "../../models/other";
-const handleSuccess = require('../../service/handleSuccess');
-const appError = require('../../service/appError');
-const User = require('../../models/users');
+import { searchRequest } from '../../models/other';
+import appError from '../../service/appError';
+import handleSuccess from '../../service/handleSuccess';
+import User from '../../models/users';
 
 const memberManage = {
   // NOTE 會員資料
@@ -10,18 +10,20 @@ const memberManage = {
     // asc 遞增(由小到大，由舊到新) createdAt ; 
     // desc 遞減(由大到小、由新到舊) "-createdAt"
     const timeSort = req.query.timeSort === "asc" ? "createdAt" : "-createdAt"
-    
     const q = req.query.q !== undefined ? new RegExp(req.query.q)
     : '';
-
-    // // 模糊搜尋多欄位
+    // 用來判斷作廢或未作廢資料
+    const disabled = req.query.disabled ? req.query.disabled : false
+    
     const data = await User.find({
+      // 模糊搜尋多欄位
       $or: [
         { id: {$regex: q } },
         { username: { $regex: q } },
-        { email: { $regex: q } }
+        { email: { $regex: q } },
       ],
-      role: "user"
+      role: "user",
+      isDisabled: disabled
     }).sort(timeSort)
     
     handleSuccess(res, data);
@@ -53,4 +55,4 @@ const memberManage = {
   },
 }
 
-module.exports = memberManage;
+export default memberManage;
