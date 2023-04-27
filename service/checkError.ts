@@ -44,7 +44,7 @@ const checkRegister = (req: AuthRequest) => {
   return errorMsg
 }
 
-module.exports = {
+export {
   checkPwdFormat,
   checkPwd,
   checkRegister
