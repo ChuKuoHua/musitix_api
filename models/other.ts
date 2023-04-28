@@ -16,9 +16,9 @@ export interface AuthRequest extends Request {
     id: string;
     email: string;
     username: string;
-    picture: string;
+    picture: string | null;
   };
-  admin: {
+  admin?: null | {
     role: string
   };
   password: string | undefined;
@@ -34,5 +34,10 @@ export interface searchRequest extends Request {
   query: {
     timeSort: string;
     q: string;
+    disabled: string;
   }
+}
+
+export interface imageRequest extends Request {
+  files: Express.Multer.File[];
 }

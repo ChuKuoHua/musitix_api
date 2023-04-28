@@ -1,9 +1,9 @@
 import { Response } from 'express';
-function handleSuccess(res: Response, data: string[]) {
+function handleSuccess<T>(res: Response, data: T | T[]) {
   res.status(200).send({
     "status": "success",
     data
   });
 }
 
-module.exports = handleSuccess
+export default handleSuccess

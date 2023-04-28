@@ -1,11 +1,11 @@
 import { Response, NextFunction } from 'express';
-import { ISession, Payload, AuthRequest } from "../models/other";
+import { ISession, Payload, AuthRequest } from '../models/other';
+import appError from '../service/appError';
+import handleErrorAsync from '../service/handleErrorAsync';
+import User, { Profiles } from '../models/users';
 
 const jwt = require('jsonwebtoken');
-const appError = require('../service/appError'); 
-const handleErrorAsync = require('../service/handleErrorAsync');
-const User = require('../models/users');
-const isAdmin = handleErrorAsync(async (req:AuthRequest, res: Response, next:NextFunction) => {
+const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:NextFunction) => {
   // 確認 token 是否存在
   let token: string | null | undefined;
   if (
@@ -31,8 +31,8 @@ const isAdmin = handleErrorAsync(async (req:AuthRequest, res: Response, next:Nex
   })
   
   const currentUser = await User.findById(decoded.id);
-  
   req.admin = currentUser;
+  
   if(req.admin?.role && req.admin.role !== 'host') {
     return next(appError(401,'此帳號權限不足',next));
   }
@@ -40,7 +40,7 @@ const isAdmin = handleErrorAsync(async (req:AuthRequest, res: Response, next:Nex
   next();
 });
 
-const generateSendAdminJWT = (user: AuthRequest, statusCode: number, res: Response) => {
+const generateSendAdminJWT = (user: Profiles, statusCode: number, res: Response) => {
   // 產生 JWT token
   const token = jwt.sign({id:user._id},process.env.JWT_SECRET,{
     expiresIn: process.env.JWT_EXPIRES_DAY
@@ -55,7 +55,7 @@ const generateSendAdminJWT = (user: AuthRequest, statusCode: number, res: Respon
   });
 } 
 
-module.exports = {
+export {
   isAdmin,
   generateSendAdminJWT
 }

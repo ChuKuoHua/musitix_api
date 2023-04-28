@@ -1,10 +1,10 @@
 import { Response, NextFunction } from 'express';
 import { ISession, Payload, AuthRequest } from "../models/other";
+import appError from '../service/appError';
+import handleErrorAsync from '../service/handleErrorAsync';
+import User, { Profiles } from '../models/users';
 
 const jwt = require('jsonwebtoken');
-const appError = require('../service/appError'); 
-const handleErrorAsync = require('../service/handleErrorAsync');
-const User = require('../models/users');
 const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
   // 確認 token 是否存在
   let token: string | null | undefined;
@@ -18,7 +18,7 @@ const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: Ne
 
   const isLogin: boolean | undefined = (req.session as ISession).isLogin;
   
-  if (!token && !isLogin || isLogin === undefined) {
+  if (!token || !isLogin || isLogin === undefined) {
     return next(appError(401,'你尚未登入！',next));
   }
   
@@ -34,12 +34,19 @@ const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: Ne
   })
   
   const currentUser= await User.findById(decoded.id);
-  req.user = currentUser;
-  
+  // req.user = currentUser;
+  if (currentUser !== null) {
+    req.user = {
+      id: currentUser._id.toString(),
+      email: currentUser.email,
+      username: currentUser.username,
+      picture: currentUser.picture ?? null,
+    };
+  }
   next();
 });
 
-const generateSendJWT = (user: AuthRequest, statusCode: number, res: Response) => {
+const generateSendJWT = (user: Profiles, statusCode: number, res: Response) => {
   // 產生 JWT token
   const token = jwt.sign({id:user._id},process.env.JWT_SECRET,{
     expiresIn: process.env.JWT_EXPIRES_DAY
@@ -55,7 +62,7 @@ const generateSendJWT = (user: AuthRequest, statusCode: number, res: Response) =
   });
 } 
 
-module.exports = {
+export {
   isAuth,
   generateSendJWT
 }

@@ -1,26 +1,28 @@
 
 import express from 'express';
 import notFound from "./service/notFound";
-
+import { resErrorAll } from './middleware/resError';
+import path from 'path';
 // 套件
-const createError = require('http-errors');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const cors = require('cors');
+import createError from 'http-errors';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import logger from 'morgan';
+import session from 'express-session';
 
 // 資料庫連線
 require('./connections');
 // 伺服器錯誤
 require('./middleware/processError');
 
+const MongoStore = require('connect-mongo');
+
 // route
-const indexRouter = require('./routes/index');
-const userRouter = require('./routes/member/user');
-const adminRouter = require('./routes/admin/admin');
-const memberManageRouter = require('./routes/admin/memberManage');
-const { resErrorAll } = require('./middleware/resError');
-const session = require('express-session');
+import indexRouter from './routes/index';
+import userRouter from './routes/member/user';
+import adminRouter from './routes/admin/admin';
+import memberManageRouter from './routes/admin/memberManage';
+
 // express
 const app = express();
 
@@ -44,7 +46,11 @@ app.use(session({
   // 默認為 connect.sid
   saveUninitialized: true,
   // 當 secure 為 true 時，cookie 在 HTTP 中是無效，在 HTTPS 中才有效
-  cookie: ({ secure: false })
+  cookie: ({ secure: false }),
+  store: new MongoStore({
+    mongoUrl: process.env.DATABASE,
+    ttl: 7 * 60 * 60 * 24, // 會話過期時間為 7 天
+  }),
 }));
 
 // route

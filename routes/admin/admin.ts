@@ -1,15 +1,15 @@
 import express from 'express';
+import handleErrorAsync from '../../service/handleErrorAsync';
+import { isAdmin } from '../../middleware/admin';
+import adminControllers from '../../controllers/admin/admin';
 
 const router = express.Router();
-const handleErrorAsync = require('../../service/handleErrorAsync');
-const userControllers = require('../../controllers/admin/admin');
-const {isAdmin} = require('../../middleware/admin');
 
 // 登入
-router.post('/login', handleErrorAsync(userControllers.login));
+router.post('/login', handleErrorAsync(adminControllers.login));
 // 註冊
-router.post('/register', handleErrorAsync(userControllers.register));
+router.post('/register', handleErrorAsync(adminControllers.register));
 // 登出
-router.post('/logout', isAdmin, handleErrorAsync(userControllers.logout));
+router.post('/logout', isAdmin, handleErrorAsync(adminControllers.logout));
 
-module.exports = router;
+export default router;

@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface Profiles {
+  _id: string;
   username: string;
   picture?: string;
   password?: string;
@@ -86,4 +87,4 @@ const userSchema: Schema = new mongoose.Schema({
 
 const User = mongoose.model<IUser>('user', userSchema);
 
-module.exports = User;
+export default User;
