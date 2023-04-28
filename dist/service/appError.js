@@ -12,4 +12,4 @@ const appError = (httpStatus, errorMessage, next) => {
     error.isOperational = true; // 判斷是否為自定義的錯誤
     next(error);
 };
-module.exports = appError;
+exports.default = appError;

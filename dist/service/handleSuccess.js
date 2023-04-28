@@ -6,4 +6,4 @@ function handleSuccess(res, data) {
         data
     });
 }
-module.exports = handleSuccess;
+exports.default = handleSuccess;

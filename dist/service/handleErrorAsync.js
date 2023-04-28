@@ -10,4 +10,4 @@ function handleErrorAsync(func) {
         });
     };
 }
-module.exports = handleErrorAsync;
+exports.default = handleErrorAsync;
