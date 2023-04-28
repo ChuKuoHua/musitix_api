@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
+import { isDate } from 'lodash';
 
 export interface ActivityBase {
   title: string;
@@ -121,8 +122,15 @@ const activitySchema: Schema<Activity> = new mongoose.Schema({
   },
   endDate: {
     type: Date,
-    required: [true, '活動結束時間必填']
-    // TODO 必須檢查是否大於起始時間
+    required: [true, '活動結束時間必填'],
+    validate: [
+      function (this: Activity) {
+        if (isDate(this.endDate) && isDate(this.startDate)) {
+          return this.endDate > this.startDate;
+        }
+      },
+      '活動結束時間必須晚於活動開始時間'
+    ],
   },
   status: {
     type: Number,
@@ -159,8 +167,15 @@ const activitySchema: Schema<Activity> = new mongoose.Schema({
   },
   saleEndDate: {
     type: Date,
-    required: [true, '售票結束時間必填']
-    // TODO 必須檢查是否大於起始時間
+    required: [true, '售票結束時間必填'],
+    validate: [
+      function (this: Activity) {
+        if (isDate(this.saleEndDate) && isDate(this.saleStartDate)) {
+          return this.saleEndDate > this.saleStartDate;
+        }
+      },
+      '售票結束時間必須晚於售票開始時間'
+    ],
   },
 });
 
