@@ -32,6 +32,7 @@ const user = {
       return next(appError( 401, '無此會員或已停用', next));
     }
     const auth = await bcrypt.compare(password, user.password);
+    
     if(!auth){
       return next(appError(400, '您的密碼不正確', next));
     }
@@ -214,13 +215,14 @@ const user = {
       if(errorMsg.length > 0) {
         return next(appError(400, errorMsg, next));
       }
-      newPassword = await bcrypt.hash(password, 12);
+      newPassword = await bcrypt.hash(newPassword, 12);
       
       await User.findByIdAndUpdate(req.user.id,
         {
           password: newPassword
         }
       );
+
       handleSuccess(res, '密碼已修改');
     }
   },
