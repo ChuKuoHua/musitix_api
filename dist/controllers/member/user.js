@@ -96,7 +96,6 @@ const user = {
         return __awaiter(this, void 0, void 0, function* () {
             const { username, picture, email } = req.user;
             const data = {
-                id: req.user.id,
                 email,
                 username,
                 picture
