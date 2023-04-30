@@ -12,8 +12,11 @@ router.post('/', isAdmin, handleErrorAsync(activityManage.createActivity));
 // 編輯活動
 router.patch('/:id', isAdmin, handleErrorAsync(activityManage.updateActivity));
 
-// TODO 活動 上架/停辦/取消
-// router.post('/:id/:action', isAdmin, handleErrorAsync(activityManage.activityAction));
+// 上架活動
+router.post('/:id/publish', isAdmin, handleErrorAsync(activityManage.publishActivity));
+
+// 取消活動
+router.post('/:id/cancel', isAdmin, handleErrorAsync(activityManage.cancelActivity));
 
 // TODO 上傳圖片(活動內文用)
 // router.post('/upload_image', isAdmin, handleErrorAsync(activityManage.uploadImage));

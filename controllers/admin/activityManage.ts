@@ -46,6 +46,44 @@ const activityManage = {
       const newActivity = await ActivityModel.findByIdAndUpdate(_id, activity, { new: true });
       handleSuccess(res, newActivity);
     }
+  },
+  async publishActivity(req: Request, res: Response, next: NextFunction) {
+    const _id = req.params.id;
+    const oriActivity = await ActivityModel.findOne({ _id });
+
+    if (!oriActivity) {
+      return appError(400, "查無此 id", next);
+    }
+
+    switch (oriActivity.status) {
+      case ActivityStatus.Unpublished:
+        const newActivity = await ActivityModel.findByIdAndUpdate(_id, { status: ActivityStatus.Published }, { new: true });
+        return handleSuccess(res, newActivity);
+      default:
+        return appError(400, "只能上架狀態為「未上架」的活動", next);
+    }
+  },
+
+  async cancelActivity(req: Request, res: Response, next: NextFunction) {
+    const _id = req.params.id;
+    const oriActivity = await ActivityModel.findOne({ _id });
+
+    if (!oriActivity) {
+      return appError(400, "查無此 id", next);
+    }
+
+    switch (oriActivity.status) {
+      case ActivityStatus.Unpublished: {
+        const newActivity = await ActivityModel.findByIdAndUpdate(_id, { status: ActivityStatus.Canceled }, { new: true });
+        return handleSuccess(res, newActivity);
+      }
+      case ActivityStatus.Published: {
+        // const newActivity = await ActivityModel.findByIdAndUpdate(_id, { status: ActivityStatus.Canceled }, { new: true });
+        return appError(400, "目前不支援停辦已上架的活動，請洽系統管理員", next);
+      }
+      default:
+        return appError(400, "只能取消狀態為「未上架」的活動", next);
+    }
   }
 }
 
