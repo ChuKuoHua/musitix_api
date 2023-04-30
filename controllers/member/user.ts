@@ -67,6 +67,7 @@ const user = {
         password,
         username
       });
+
       handleSuccess(res, '註冊成功', 201)
     } catch (error) {
       // 不打資料庫，使用 mongoose 回傳的錯誤檢查  
@@ -88,7 +89,6 @@ const user = {
     const { username, picture, email } = req.user
 
     const data = {
-      id: req.user.id,
       email,
       username,
       picture
