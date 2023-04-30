@@ -47,7 +47,7 @@ const generateSendAdminJWT = (user: Profiles, statusCode: number, res: Response)
   });
   user.password = undefined;
   res.status(statusCode).json({
-    status: 'success',
+    message: '成功',
     user:{
       token,
       username: user.username, // 暱稱
