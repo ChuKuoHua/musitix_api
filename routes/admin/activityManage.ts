@@ -9,8 +9,8 @@ const router = express.Router();
 // 建立活動
 router.post('/', isAdmin, handleErrorAsync(activityManage.createActivity));
 
-// TODO 編輯活動
-// router.patch('/:id', isAdmin, handleErrorAsync(activityManage.editActivity));
+// 編輯活動
+router.patch('/:id', isAdmin, handleErrorAsync(activityManage.updateActivity));
 
 // TODO 活動 上架/停辦/取消
 // router.post('/:id/:action', isAdmin, handleErrorAsync(activityManage.activityAction));
