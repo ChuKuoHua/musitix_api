@@ -40,7 +40,7 @@ const user = {
             }
             const auth = yield bcryptjs_1.default.compare(password, user.password);
             if (!auth) {
-                return next((0, appError_1.default)(400, '您的密碼不正確', next));
+                return next((0, appError_1.default)(400, '密碼錯誤', next));
             }
             req.session.role = user.role;
             req.session.isLogin = true;
@@ -61,22 +61,22 @@ const user = {
                 username: username
             });
             if (userCheck !== null) {
-                return next((0, appError_1.default)(400, "此名稱已被使用", next));
+                return next((0, appError_1.default)(400, "此暱稱已被使用", next));
             }
             try {
                 // 加密密碼
                 password = yield bcryptjs_1.default.hash(req.body.password, 12);
-                const newUser = yield users_1.default.create({
+                yield users_1.default.create({
                     email,
                     password,
                     username
                 });
-                (0, auth_1.generateSendJWT)(newUser, 201, res);
+                (0, handleSuccess_1.default)(res, '註冊成功', 201);
             }
             catch (error) {
                 // 不打資料庫，使用 mongoose 回傳的錯誤檢查  
                 if (error && error.code === 11000) {
-                    return next((0, appError_1.default)(400, "此 Email 已使用", next));
+                    return next((0, appError_1.default)(400, '此 Email 已使用', next));
                 }
                 else {
                     return next((0, appError_1.default)(400, error, next));

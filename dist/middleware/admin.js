@@ -55,7 +55,7 @@ const generateSendAdminJWT = (user, statusCode, res) => {
     });
     user.password = undefined;
     res.status(statusCode).json({
-        status: 'success',
+        message: '成功',
         user: {
             token,
             username: user.username, // 暱稱
