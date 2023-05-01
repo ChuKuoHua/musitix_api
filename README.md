@@ -1,5 +1,5 @@
 # Musitix API
-Release: v1.2.4
+Release: v1.2.5
 Node: 建議 v16 以上
 
 2023-05-01
