@@ -8,6 +8,7 @@ export interface ISession extends Session {
 
 export interface Payload {
   id: string;
+  session_id: string;
 }
 
 export interface AuthRequest extends Request {

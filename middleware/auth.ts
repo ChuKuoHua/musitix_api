@@ -3,6 +3,7 @@ import { ISession, Payload, AuthRequest } from "../models/other";
 import appError from '../service/appError';
 import handleErrorAsync from '../service/handleErrorAsync';
 import User, { Profiles } from '../models/users';
+import SessionController from '../models/session';
 
 const jwt = require('jsonwebtoken');
 const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -16,9 +17,10 @@ const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: Ne
     token = req.headers.authorization.split(' ')[1];
   }
 
-  const isLogin: boolean | undefined = (req.session as ISession).isLogin;
   
-  if (!token || !isLogin || isLogin === undefined) {
+  // const isLogin: boolean | undefined = (req.session as ISession).isLogin;
+  // || !isLogin || isLogin === undefined
+  if (!token) {
     return next(appError(401,'你尚未登入！',next));
   }
   
@@ -32,9 +34,11 @@ const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: Ne
       }
     })
   })
+  // const session = await SessionController.findById(decoded.session_id);
+  // console.log(session);
   
-  const currentUser= await User.findById(decoded.id);
-  // req.user = currentUser;
+  const currentUser = await User.findById(decoded.id);
+
   if (currentUser !== null) {
     req.user = {
       id: currentUser._id.toString(),
@@ -46,9 +50,12 @@ const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: Ne
   next();
 });
 
-const generateSendJWT = (user: Profiles, statusCode: number, res: Response) => {
+const generateSendJWT = (user: Profiles, statusCode: number, res: Response, sessionID: string) => {
   // 產生 JWT token
-  const token = jwt.sign({id:user._id},process.env.JWT_SECRET,{
+  const token = jwt.sign({
+    id: user._id,
+    // session_id: sessionID
+  },process.env.JWT_SECRET,{
     expiresIn: process.env.JWT_EXPIRES_DAY
   });
   user.password = undefined;
