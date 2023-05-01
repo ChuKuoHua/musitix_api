@@ -20,6 +20,7 @@ const MongoStore = require('connect-mongo');
 const index_1 = __importDefault(require("./routes/index"));
 const user_1 = __importDefault(require("./routes/member/user"));
 const admin_1 = __importDefault(require("./routes/admin/admin"));
+const activityManage_1 = __importDefault(require("./routes/admin/activityManage"));
 const memberManage_1 = __importDefault(require("./routes/admin/memberManage"));
 // express
 const app = (0, express_1.default)();
@@ -40,12 +41,14 @@ app.use((0, express_session_1.default)({
     // 無論有無 session cookie，每次請求都設置 session cookie
     // 默認為 connect.sid
     saveUninitialized: true,
-    // 當 secure 為 true 時，cookie 在 HTTP 中是無效，在 HTTPS 中才有效
-    cookie: ({ secure: false }),
-    store: new MongoStore({
-        mongoUrl: process.env.DATABASE,
-        ttl: 7 * 60 * 60 * 24, // 會話過期時間為 7 天
+    cookie: ({
+        httpOnly: true,
+        maxAge: 7 * 60 * 60 * 24 // 會話過期時間為 7 天
     }),
+    // store: new MongoStore({
+    //   mongoUrl: process.env.DATABASE,
+    //   ttl: 7 * 60 * 60 * 24, // 會話過期時間為 7 天
+    // }),
 }));
 // route
 // 前台
@@ -54,6 +57,7 @@ app.use('/api/users', user_1.default);
 // 後台
 app.use('/admin', admin_1.default);
 app.use('/admin/users_mgmt', memberManage_1.default);
+app.use('/admin/activities', activityManage_1.default);
 // 404 路由
 app.use(notFound_1.default);
 // 錯誤處理
