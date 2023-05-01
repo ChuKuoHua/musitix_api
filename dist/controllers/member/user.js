@@ -44,7 +44,7 @@ const user = {
             }
             req.session.role = user.role;
             req.session.isLogin = true;
-            (0, auth_1.generateSendJWT)(user, 200, res);
+            (0, auth_1.generateSendJWT)(user, 200, res, req.sessionID);
         });
     },
     // NOTE 註冊

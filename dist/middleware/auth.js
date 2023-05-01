@@ -25,8 +25,9 @@ const isAuth = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(voi
         req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
     }
-    const isLogin = req.session.isLogin;
-    if (!token || !isLogin || isLogin === undefined) {
+    // const isLogin: boolean | undefined = (req.session as ISession).isLogin;
+    // || !isLogin || isLogin === undefined
+    if (!token) {
         return next((0, appError_1.default)(401, '你尚未登入！', next));
     }
     // 驗證 token 正確性
@@ -40,8 +41,9 @@ const isAuth = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(voi
             }
         });
     });
+    // const session = await SessionController.findById(decoded.session_id);
+    // console.log(session);
     const currentUser = yield users_1.default.findById(decoded.id);
-    // req.user = currentUser;
     if (currentUser !== null) {
         req.user = {
             id: currentUser._id.toString(),
@@ -53,9 +55,12 @@ const isAuth = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(voi
     next();
 }));
 exports.isAuth = isAuth;
-const generateSendJWT = (user, statusCode, res) => {
+const generateSendJWT = (user, statusCode, res, sessionID) => {
     // 產生 JWT token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({
+        id: user._id,
+        // session_id: sessionID
+    }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRES_DAY
     });
     user.password = undefined;
