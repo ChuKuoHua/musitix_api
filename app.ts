@@ -21,6 +21,7 @@ const MongoStore = require('connect-mongo');
 import indexRouter from './routes/index';
 import userRouter from './routes/member/user';
 import adminRouter from './routes/admin/admin';
+import activityManageRouter from './routes/admin/activityManage';
 import memberManageRouter from './routes/admin/memberManage';
 
 // express
@@ -63,6 +64,7 @@ app.use('/api/users', userRouter);
 // 後台
 app.use('/admin', adminRouter)
 app.use('/admin/users_mgmt', memberManageRouter)
+app.use('/admin/activities', activityManageRouter)
 
 // 404 路由
 app.use(notFound);
