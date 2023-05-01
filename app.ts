@@ -45,12 +45,14 @@ app.use(session({
   // 無論有無 session cookie，每次請求都設置 session cookie
   // 默認為 connect.sid
   saveUninitialized: true,
-  // 當 secure 為 true 時，cookie 在 HTTP 中是無效，在 HTTPS 中才有效
-  cookie: ({ secure: false }),
-  store: new MongoStore({
-    mongoUrl: process.env.DATABASE,
-    ttl: 7 * 60 * 60 * 24, // 會話過期時間為 7 天
+  cookie: ({
+    httpOnly: true,
+    maxAge: 7 * 60 * 60 * 24 // 會話過期時間為 7 天
   }),
+  // store: new MongoStore({
+  //   mongoUrl: process.env.DATABASE,
+  //   ttl: 7 * 60 * 60 * 24, // 會話過期時間為 7 天
+  // }),
 }));
 
 // route
