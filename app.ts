@@ -42,17 +42,15 @@ app.use(session({
   secret: 'keyTokeId',
   // 保存 session 值
   resave: true,
-  // 無論有無 session cookie，每次請求都設置 session cookie
-  // 默認為 connect.sid
   saveUninitialized: true,
-  cookie: ({
-    httpOnly: true,
-    maxAge: 7 * 60 * 60 * 24 // 會話過期時間為 7 天
-  }),
-  // store: new MongoStore({
-  //   mongoUrl: process.env.DATABASE,
-  //   ttl: 7 * 60 * 60 * 24, // 會話過期時間為 7 天
+  // cookie: ({
+  //   httpOnly: true,
+  //   maxAge: 7 * 60 * 60 * 24 // 會話過期時間為 7 天
   // }),
+  store: MongoStore.create({
+    mongoUrl: process.env.DATABASE,
+    ttl: 7 * 60 * 60 * 24
+  }),
 }));
 
 // route

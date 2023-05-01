@@ -39,7 +39,7 @@ const user = {
 
     req.session.role = user.role
     req.session.isLogin = true;
-    generateSendJWT(user, 200, res);
+    generateSendJWT(user, 200, res, req.sessionID);
   },
   // NOTE 註冊
   async register(req: AuthRequest, res: Response, next: NextFunction) {
