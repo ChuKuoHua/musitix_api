@@ -8,7 +8,6 @@ import createError from 'http-errors';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import logger from 'morgan';
-import session from 'express-session';
 
 // 資料庫連線
 require('./connections');
@@ -37,22 +36,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-// 使用 session
-app.use(session({
-  secret: 'keyTokeId',
-  // 保存 session 值
-  resave: true,
-  saveUninitialized: true,
-  // cookie: ({
-  //   httpOnly: true,
-  //   maxAge: 7 * 60 * 60 * 24 // 會話過期時間為 7 天
-  // }),
-  store: MongoStore.create({
-    mongoUrl: process.env.DATABASE,
-    ttl: 7 * 60 * 60 * 24
-  }),
-}));
 
 // route
 // 前台

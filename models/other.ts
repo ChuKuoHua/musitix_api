@@ -19,15 +19,21 @@ export interface AuthRequest extends Request {
     username: string;
     picture: string | null;
   };
-  admin?: null | {
+  admin: {
+    id: string;
     role: string
+    email: string;
+    username: string;
+    picture: string | null;
   };
   password: string | undefined;
   username: string;
   picture: string;
   session: Session & {
     isLogin: boolean;
-    role: string;
+    email: string;
+    username: string;
+    picture: string | null;
   }
 }
 
