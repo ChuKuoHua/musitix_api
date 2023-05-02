@@ -20,6 +20,7 @@ export interface IUser extends Document {
   createdAt?: Date;
   updatedAt?: Date;
   Timestamp?: Date;
+  token?: string;
 }
 
 const userSchema: Schema = new mongoose.Schema({
@@ -83,6 +84,10 @@ const userSchema: Schema = new mongoose.Schema({
     default: "",
     select: false
   },
+  token: {
+    type: String,
+    default: ""
+  }
 });
 
 const User = mongoose.model<IUser>('user', userSchema);

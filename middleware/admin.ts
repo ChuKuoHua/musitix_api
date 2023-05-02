@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { ISession, Payload, AuthRequest } from '../models/other';
+import { Payload, AuthRequest } from '../models/other';
 import appError from '../service/appError';
 import handleErrorAsync from '../service/handleErrorAsync';
 import User, { Profiles } from '../models/users';
@@ -15,9 +15,8 @@ const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:Ne
     token = req.headers.authorization.split(' ')[1];
   }
 
-  const isLogin: boolean | undefined = (req.session as ISession).isLogin;
-  if (!token && !isLogin || isLogin === undefined) {
-    return next(appError(401,'你尚未登入！',next));
+  if (!token) {
+    return next(appError(401, '你尚未登入！', next));
   }
   // 驗證 token 正確性
   const decoded = await new Promise<Payload>((resolve, reject) => {
@@ -29,22 +28,41 @@ const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:Ne
       }
     })
   })
-  
+
   const currentUser = await User.findById(decoded.id);
-  req.admin = currentUser;
+  if (currentUser !== null) {
+    if(!currentUser.token) {
+      return next(appError(401,'你尚未登入！',next));
+    }
+    req.admin = {
+      id: currentUser._id.toString(),
+      email: currentUser.email,
+      username: currentUser.username,
+      picture: currentUser.picture ?? null,
+      role: currentUser.role
+    };
+  } else {
+    return next(appError(401, '無效的 token', next));
+  }
   
   if(req.admin?.role && req.admin.role !== 'host') {
     return next(appError(401,'此帳號權限不足',next));
   }
-  
+
   next();
 });
 
-const generateSendAdminJWT = (user: Profiles, statusCode: number, res: Response) => {
+const generateSendAdminJWT = async (user: Profiles, statusCode: number, res: Response) => {
   // 產生 JWT token
   const token = jwt.sign({id:user._id},process.env.JWT_SECRET,{
     expiresIn: process.env.JWT_EXPIRES_DAY
   });
+
+  await User.findByIdAndUpdate(user._id,
+    {
+      token: token
+    }
+  );
   user.password = undefined;
   res.status(statusCode).json({
     message: '成功',
