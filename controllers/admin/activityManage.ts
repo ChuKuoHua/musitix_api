@@ -10,10 +10,15 @@ const activityManage = {
       const { title, sponsorName, location, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate } = req.body;
       const status: ActivityStatus = ActivityStatus.Unpublished;
+
+      const priceList = schedules.flatMap(schedule => schedule.ticketCategories.map(ticketCategory => ticketCategory.price));
+      const minPrice = Math.min(...priceList);
+      const maxPrice = Math.max(...priceList);
+
       const activity: Activity = {
         title, sponsorName, location, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate,
-        status
+        status, minPrice, maxPrice
       }
       const newActivity = await ActivityModel.create(activity);
       handleSuccess(res, newActivity);
@@ -37,10 +42,15 @@ const activityManage = {
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate } = req.body;
 
       const status: ActivityStatus = ActivityStatus.Unpublished;
+
+      const priceList = schedules.flatMap(schedule => schedule.ticketCategories.map(ticketCategory => ticketCategory.price));
+      const minPrice = Math.min(...priceList);
+      const maxPrice = Math.max(...priceList);
+
       const activity: Activity = {
         title, sponsorName, location, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate,
-        status
+        status, minPrice, maxPrice
       }
 
       const newActivity = await ActivityModel.findByIdAndUpdate(_id, activity, { new: true });
