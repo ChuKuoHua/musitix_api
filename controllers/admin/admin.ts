@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../../models/other';
-import { Session } from 'express-session';
+// import { Session } from 'express-session';
 import appError from '../../service/appError';
 import handleSuccess from '../../service/handleSuccess';
 import { checkPwd } from '../../service/checkError';
@@ -23,16 +23,17 @@ const admin = {
         role: "host"
       },
     ).select('+password');
+
     if(!user) {
       return next(appError( 401,'權限不足',next));
     }
+
     const auth = await bcrypt.compare(password, user.password);
+
     if(!auth){
       return next(appError(400,'您的密碼不正確',next));
     }
-    
-    req.session.role = user.role
-    req.session.isLogin = true;
+
     generateSendAdminJWT(user, 200, res);
   },
   // NOTE 註冊
@@ -85,7 +86,11 @@ const admin = {
   },
   // NOTE 登出
   async logout(req: AuthRequest, res:Response) {
-    req.session.destroy(():void => {}) as Session & {};
+    await User.findByIdAndUpdate(req.admin.id,
+      {
+        token: ''
+      }
+    );
     handleSuccess(res, '已登出')
   },
 }

@@ -53,6 +53,24 @@ const memberManage = {
       handleSuccess(res, '此會員已啟用')
     }
   },
+  // 刪除會員(後端用)
+  async clearUser(req: Request, res: Response, next: NextFunction) {
+    let { userId, isDisabled } = req.body;
+
+    // 檢查有無此會員
+    const userCheck = await User.findOne({
+      "_id": userId
+    })
+
+    if(!userCheck) {
+      return next(appError(400,"查無此 id",next));
+    }
+    
+    const data = await User.deleteOne({"_id": userId})
+    if(data) {
+      handleSuccess(res, '此會員已停用')
+    }
+  },
 }
 
 export default memberManage;

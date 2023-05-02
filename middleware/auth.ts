@@ -1,11 +1,10 @@
 import { Response, NextFunction } from 'express';
-import { ISession, Payload, AuthRequest } from "../models/other";
+import { Payload, AuthRequest } from "../models/other";
 import appError from '../service/appError';
 import handleErrorAsync from '../service/handleErrorAsync';
 import User, { Profiles } from '../models/users';
-import SessionController from '../models/session';
-
 const jwt = require('jsonwebtoken');
+
 const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
   // 確認 token 是否存在
   let token: string | null | undefined;
@@ -16,12 +15,9 @@ const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: Ne
   ) {
     token = req.headers.authorization.split(' ')[1];
   }
-
   
-  // const isLogin: boolean | undefined = (req.session as ISession).isLogin;
-  // || !isLogin || isLogin === undefined
   if (!token) {
-    return next(appError(401,'你尚未登入！',next));
+    return next(appError(401, '你尚未登入！', next));
   }
   
   // 驗證 token 正確性
@@ -34,30 +30,39 @@ const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: Ne
       }
     })
   })
-  // const session = await SessionController.findById(decoded.session_id);
-  // console.log(session);
   
   const currentUser = await User.findById(decoded.id);
-
+ 
   if (currentUser !== null) {
+    if(!currentUser.token) {
+      return next(appError(401, '你尚未登入！', next));
+    }
     req.user = {
       id: currentUser._id.toString(),
       email: currentUser.email,
       username: currentUser.username,
       picture: currentUser.picture ?? null,
     };
+  } else {
+    return next(appError(401, '無效的 token', next));
   }
+
   next();
 });
 
-const generateSendJWT = (user: Profiles, statusCode: number, res: Response, sessionID: string) => {
+const generateSendJWT = async (user: Profiles, statusCode: number, res: Response) => {
   // 產生 JWT token
   const token = jwt.sign({
     id: user._id,
-    // session_id: sessionID
   },process.env.JWT_SECRET,{
     expiresIn: process.env.JWT_EXPIRES_DAY
   });
+
+  await User.findByIdAndUpdate(user._id,
+    {
+      token: token
+    }
+  );
   user.password = undefined;
   res.status(statusCode).json({
     message: '成功',
