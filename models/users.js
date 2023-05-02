@@ -65,6 +65,10 @@ const userSchema = new mongoose_1.default.Schema({
         default: "",
         select: false
     },
+    token: {
+        type: String,
+        default: ""
+    }
 });
 const User = mongoose_1.default.model('user', userSchema);
 exports.default = User;

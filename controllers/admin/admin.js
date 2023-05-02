@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// import { Session } from 'express-session';
 const appError_1 = __importDefault(require("../../service/appError"));
 const handleSuccess_1 = __importDefault(require("../../service/handleSuccess"));
 const checkError_1 = require("../../service/checkError");
@@ -39,8 +40,6 @@ const admin = {
             if (!auth) {
                 return next((0, appError_1.default)(400, '您的密碼不正確', next));
             }
-            req.session.role = user.role;
-            req.session.isLogin = true;
             (0, admin_1.generateSendAdminJWT)(user, 200, res);
         });
     },
@@ -92,7 +91,9 @@ const admin = {
     // NOTE 登出
     logout(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            req.session.destroy(() => { });
+            yield users_1.default.findByIdAndUpdate(req.admin.id, {
+                token: ''
+            });
             (0, handleSuccess_1.default)(res, '已登出');
         });
     },

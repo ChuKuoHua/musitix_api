@@ -18,15 +18,14 @@ const handleErrorAsync_1 = __importDefault(require("../service/handleErrorAsync"
 const users_1 = __importDefault(require("../models/users"));
 const jwt = require('jsonwebtoken');
 const isAdmin = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     // 確認 token 是否存在
     let token;
     if (req.headers.authorization &&
         req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
     }
-    const isLogin = req.session.isLogin;
-    if (!token && !isLogin || isLogin === undefined) {
+    if (!token) {
         return next((0, appError_1.default)(401, '你尚未登入！', next));
     }
     // 驗證 token 正確性
@@ -41,17 +40,34 @@ const isAdmin = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(vo
         });
     });
     const currentUser = yield users_1.default.findById(decoded.id);
-    req.admin = currentUser;
-    if (((_a = req.admin) === null || _a === void 0 ? void 0 : _a.role) && req.admin.role !== 'host') {
+    if (currentUser !== null) {
+        if (!currentUser.token) {
+            return next((0, appError_1.default)(401, '你尚未登入！', next));
+        }
+        req.admin = {
+            id: currentUser._id.toString(),
+            email: currentUser.email,
+            username: currentUser.username,
+            picture: (_a = currentUser.picture) !== null && _a !== void 0 ? _a : null,
+            role: currentUser.role
+        };
+    }
+    else {
+        return next((0, appError_1.default)(401, '無效的 token', next));
+    }
+    if (((_b = req.admin) === null || _b === void 0 ? void 0 : _b.role) && req.admin.role !== 'host') {
         return next((0, appError_1.default)(401, '此帳號權限不足', next));
     }
     next();
 }));
 exports.isAdmin = isAdmin;
-const generateSendAdminJWT = (user, statusCode, res) => {
+const generateSendAdminJWT = (user, statusCode, res) => __awaiter(void 0, void 0, void 0, function* () {
     // 產生 JWT token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRES_DAY
+    });
+    yield users_1.default.findByIdAndUpdate(user._id, {
+        token: token
     });
     user.password = undefined;
     res.status(statusCode).json({
@@ -61,5 +77,5 @@ const generateSendAdminJWT = (user, statusCode, res) => {
             username: user.username, // 暱稱
         }
     });
-};
+});
 exports.generateSendAdminJWT = generateSendAdminJWT;

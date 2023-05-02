@@ -63,5 +63,22 @@ const memberManage = {
             }
         });
     },
+    // 刪除會員(後端用)
+    clearUser(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let { userId, isDisabled } = req.body;
+            // 檢查有無此會員
+            const userCheck = yield users_1.default.findOne({
+                "_id": userId
+            });
+            if (!userCheck) {
+                return next((0, appError_1.default)(400, "查無此 id", next));
+            }
+            const data = yield users_1.default.deleteOne({ "_id": userId });
+            if (data) {
+                (0, handleSuccess_1.default)(res, '此會員已停用');
+            }
+        });
+    },
 };
 exports.default = memberManage;

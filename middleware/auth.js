@@ -25,8 +25,6 @@ const isAuth = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(voi
         req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
     }
-    // const isLogin: boolean | undefined = (req.session as ISession).isLogin;
-    // || !isLogin || isLogin === undefined
     if (!token) {
         return next((0, appError_1.default)(401, '你尚未登入！', next));
     }
@@ -41,10 +39,12 @@ const isAuth = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(voi
             }
         });
     });
-    // const session = await SessionController.findById(decoded.session_id);
-    // console.log(session);
     const currentUser = yield users_1.default.findById(decoded.id);
     if (currentUser !== null) {
+        if (!currentUser.token) {
+            return next((0, appError_1.default)(401, '你尚未登入！', next));
+        }
+        
         req.user = {
             id: currentUser._id.toString(),
             email: currentUser.email,
@@ -52,16 +52,21 @@ const isAuth = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(voi
             picture: (_a = currentUser.picture) !== null && _a !== void 0 ? _a : null,
         };
     }
+    else {
+        return next((0, appError_1.default)(401, '無效的 token', next));
+    }
     next();
 }));
 exports.isAuth = isAuth;
-const generateSendJWT = (user, statusCode, res, sessionID) => {
+const generateSendJWT = (user, statusCode, res) => __awaiter(void 0, void 0, void 0, function* () {
     // 產生 JWT token
     const token = jwt.sign({
         id: user._id,
-        // session_id: sessionID
     }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRES_DAY
+    });
+    yield users_1.default.findByIdAndUpdate(user._id, {
+        token: token
     });
     user.password = undefined;
     res.status(statusCode).json({
@@ -72,5 +77,5 @@ const generateSendJWT = (user, statusCode, res, sessionID) => {
             picture: user.picture // 個人頭像
         }
     });
-};
+});
 exports.generateSendJWT = generateSendJWT;

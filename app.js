@@ -10,7 +10,6 @@ const path_1 = __importDefault(require("path"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
 const morgan_1 = __importDefault(require("morgan"));
-const express_session_1 = __importDefault(require("express-session"));
 // 資料庫連線
 require('./connections');
 // 伺服器錯誤
@@ -33,21 +32,6 @@ app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: false }));
 app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.static(path_1.default.join(__dirname, 'public')));
-// 使用 session
-app.use((0, express_session_1.default)({
-    secret: 'keyTokeId',
-    // 保存 session 值
-    resave: true,
-    saveUninitialized: true,
-    // cookie: ({
-    //   httpOnly: true,
-    //   maxAge: 7 * 60 * 60 * 24 // 會話過期時間為 7 天
-    // }),
-    store: MongoStore.create({
-        mongoUrl: process.env.DATABASE,
-        ttl: 7 * 60 * 60 * 24
-    }),
-}));
 // route
 // 前台
 app.use('/', index_1.default);

@@ -42,9 +42,7 @@ const user = {
             if (!auth) {
                 return next((0, appError_1.default)(400, '密碼錯誤', next));
             }
-            req.session.role = user.role;
-            req.session.isLogin = true;
-            (0, auth_1.generateSendJWT)(user, 200, res, req.sessionID);
+            (0, auth_1.generateSendJWT)(user, 200, res);
         });
     },
     // NOTE 註冊
@@ -87,7 +85,9 @@ const user = {
     // NOTE 登出
     logout(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            req.session.destroy(() => { });
+            yield users_1.default.findByIdAndUpdate(req.user.id, {
+                token: ''
+            });
             (0, handleSuccess_1.default)(res, '已登出');
         });
     },
@@ -194,9 +194,9 @@ const user = {
     updatePassword(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             let { password, newPassword, confirmPassword } = req.body;
-            const email = req.user.email;
+            const userId = req.user.id;
             const user = yield users_1.default.findOne({
-                email
+                userId
             }).select('+password');
             if (user) {
                 const auth = yield bcryptjs_1.default.compare(password, user.password);
