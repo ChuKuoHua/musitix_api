@@ -15,5 +15,4 @@ const upload = multer({
   },
 }).any();
 
-module.exports = upload;
 export default upload;
