@@ -1,8 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
+import { v4 as uuidv4 } from 'uuid';
+import { GetSignedUrlConfig, GetSignedUrlCallback } from '@google-cloud/storage';
 
+import firebaseAdmin from '../../middleware/firebase';
 import ActivityModel, { Activity, ActivityStatus, CreateActivityCommand } from '../../models/activityModel';
 import handleSuccess from '../../service/handleSuccess';
 import appError from '../../service/appError';
+import { imageRequest } from '../../models/other';
+
+const bucket = firebaseAdmin.storage().bucket();
 
 const activityManage = {
   async createActivity(req: Request<any, any, CreateActivityCommand>, res: Response, next: NextFunction) {
@@ -10,10 +16,15 @@ const activityManage = {
       const { title, sponsorName, location, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate } = req.body;
       const status: ActivityStatus = ActivityStatus.Unpublished;
+
+      const priceList = schedules.flatMap(schedule => schedule.ticketCategories.map(ticketCategory => ticketCategory.price));
+      const minPrice = Math.min(...priceList);
+      const maxPrice = Math.max(...priceList);
+
       const activity: Activity = {
         title, sponsorName, location, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate,
-        status
+        status, minPrice, maxPrice
       }
       const newActivity = await ActivityModel.create(activity);
       handleSuccess(res, newActivity);
@@ -37,10 +48,15 @@ const activityManage = {
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate } = req.body;
 
       const status: ActivityStatus = ActivityStatus.Unpublished;
+
+      const priceList = schedules.flatMap(schedule => schedule.ticketCategories.map(ticketCategory => ticketCategory.price));
+      const minPrice = Math.min(...priceList);
+      const maxPrice = Math.max(...priceList);
+
       const activity: Activity = {
         title, sponsorName, location, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate,
-        status
+        status, minPrice, maxPrice
       }
 
       const newActivity = await ActivityModel.findByIdAndUpdate(_id, activity, { new: true });
@@ -63,7 +79,6 @@ const activityManage = {
         return appError(400, "只能上架狀態為「未上架」的活動", next);
     }
   },
-
   async cancelActivity(req: Request, res: Response, next: NextFunction) {
     const _id = req.params.id;
     const oriActivity = await ActivityModel.findOne({ _id });
@@ -84,6 +99,40 @@ const activityManage = {
       default:
         return appError(400, "只能取消狀態為「未上架」的活動", next);
     }
+  },
+  async uploadActivityImage(req: imageRequest, res: Response, next: NextFunction) {
+    if (!req.files?.length) {
+      return appError(400, "尚未上傳檔案", next);
+    }
+    // 取得上傳的檔案資訊列表裡面的第一個檔案
+    const file = req.files[0];
+    // 基於檔案的原始名稱建立一個 blob 物件
+    const blob = bucket.file(`images/activities/${uuidv4()}.${file.originalname.split('.').pop()}`);
+    // 建立一個可以寫入 blob 的物件
+    const blobStream = blob.createWriteStream()
+
+    // 監聽上傳狀態，當上傳完成時，會觸發 finish 事件
+    blobStream.on('finish', () => {
+      // 設定檔案的存取權限
+      const config: GetSignedUrlConfig = {
+        action: 'read', // 權限
+        expires: '12-31-2500', // 網址的有效期限
+      };
+      const callback: GetSignedUrlCallback = (err: Error | null, fileUrl?: string) => {
+        return handleSuccess(res, fileUrl);
+      };
+
+      // 取得檔案的網址
+      blob.getSignedUrl(config, callback);
+    });
+
+    // 如果上傳過程中發生錯誤，會觸發 error 事件
+    blobStream.on('error', (err: Error) => {
+      return next(appError("500", '上傳失敗', next));
+    });
+
+    // 將檔案的 buffer 寫入 blobStream
+    blobStream.end(file.buffer);
   }
 }
 
