@@ -19,8 +19,8 @@ export interface ActivityBase {
 export interface Activity extends ActivityBase {
   status: ActivityStatus;
 
-  // minPrice: number;
-  // maxPrice: number;
+  minPrice: number;
+  maxPrice: number;
 }
 
 export interface CreateActivityCommand extends ActivityBase {
@@ -177,6 +177,12 @@ const activitySchema: Schema<Activity> = new mongoose.Schema({
       '售票結束時間必須晚於售票開始時間'
     ],
   },
+  minPrice: {
+    type: Number
+  },
+  maxPrice: {
+    type: Number
+  }
 });
 
 const ActivityModel = mongoose.model<Activity>('activities', activitySchema);

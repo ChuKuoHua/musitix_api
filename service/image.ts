@@ -4,7 +4,7 @@ import path from 'path';
 
 const upload = multer({
   limits: {
-    fileSize: 2*1024*1024,
+    fileSize: 2 * 1024 * 1024,
   },
   fileFilter(req: Request, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase();
@@ -15,4 +15,4 @@ const upload = multer({
   },
 }).any();
 
-module.exports = upload 
+export default upload;

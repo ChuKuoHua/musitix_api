@@ -2,14 +2,12 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest, imageRequest } from '../../models/other';
 import User, { Profiles } from '../../models/users';
 import { HTTPError } from '../../models/error';
-import { Session } from 'express-session';
 import { v4 as uuidv4 } from 'uuid';
 import appError from '../../service/appError';
 import handleSuccess from '../../service/handleSuccess';
 import { generateSendJWT } from '../../middleware/auth';
 import bcrypt from 'bcryptjs';
 import {checkPwd, checkRegister} from'../../service/checkError';
-
 // 引入上傳圖片會用到的套件
 const firebaseAdmin = require('../../middleware/firebase');
 const bucket = firebaseAdmin.storage().bucket();
@@ -31,15 +29,13 @@ const user = {
     if(!user) {
       return next(appError( 401, '無此會員或已停用', next));
     }
+
     const auth = await bcrypt.compare(password, user.password);
-    
     if(!auth){
       return next(appError(400, '密碼錯誤', next));
     }
 
-    req.session.role = user.role
-    req.session.isLogin = true;
-    generateSendJWT(user, 200, res, req.sessionID);
+    generateSendJWT(user, 200, res);
   },
   // NOTE 註冊
   async register(req: AuthRequest, res: Response, next: NextFunction) {
@@ -80,8 +76,11 @@ const user = {
   },
   // NOTE 登出
   async logout(req: AuthRequest, res:Response) {
-    req.session.destroy(():void => {}) as Session & {};
-    
+    await User.findByIdAndUpdate(req.user.id,
+      {
+        token: ''
+      }
+    );
     handleSuccess(res, '已登出')
   },
   // NOTE 取得個人資料
@@ -154,7 +153,7 @@ const user = {
 
   // NOTE 上傳個人圖片
   async uploadUserImage (req: imageRequest, res:Response, next: NextFunction) {
-    if(!req.files || !req.files.length) {
+    if(!req.files?.length) {
       return next(appError(400, "尚未上傳檔案", next));
     }
     // 取得上傳的檔案資訊列表裡面的第一個檔案
@@ -188,10 +187,10 @@ const user = {
   // 更新密碼
   async updatePassword (req: AuthRequest, res:Response, next: NextFunction) {
     let { password, newPassword, confirmPassword } = req.body;
-    const email = req.user.email
+    const userId = req.user.id
     const user = await User.findOne(
       {
-        email
+        userId
       },
     ).select('+password');
     if(user) {
