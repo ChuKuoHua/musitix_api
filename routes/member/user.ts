@@ -2,9 +2,9 @@ import express from 'express';
 import handleErrorAsync from '../../service/handleErrorAsync';
 import userControllers from '../../controllers/member/user';
 import { isAuth } from '../../middleware/auth';
+import upload from '../../service/image';
 
 const router = express.Router();
-const upload = require('../../service/image');
 
 // 登入
 router.post('/login', handleErrorAsync(userControllers.login));
