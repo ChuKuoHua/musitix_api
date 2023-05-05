@@ -6,6 +6,7 @@
     "start:dev": "cross-env NODE_ENV=dev nodemon ./bin/www.ts",
     "start:production": "cross-env NODE_ENV=production nodemon ./bin/www.ts",
     "production": "cross-env NODE_ENV=production node ./dist/bin/www",
+    "swagger-autogen": "node ./swagger.js",
     "build": "tsc"
   },
   "dependencies": {
@@ -26,6 +27,9 @@
     "mongoose": "^7.0.3",
     "morgan": "~1.9.1",
     "multer": "^1.4.5-lts.1",
+    "swagger-autogen": "^2.23.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^4.6.3",
     "uuid": "^9.0.0",
     "validator": "^13.9.0"
   },

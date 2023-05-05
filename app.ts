@@ -13,7 +13,8 @@ import logger from 'morgan';
 require('./connections');
 // 伺服器錯誤
 require('./middleware/processError');
-
+const swaggerUi = require('swagger-ui-express')
+const swaggerFile = require('./swagger_output.json')
 const MongoStore = require('connect-mongo');
 
 // route
@@ -36,7 +37,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use('/api-doc', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 // route
 // 前台
 app.use('/', indexRouter);
