@@ -19,7 +19,6 @@ const config = {
     auth_provider_X509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
     client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL,
 };
-
 admin.initializeApp({
     credential: admin.credential.cert(config),
     storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,

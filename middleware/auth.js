@@ -44,7 +44,6 @@ const isAuth = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(voi
         if (!currentUser.token) {
             return next((0, appError_1.default)(401, '你尚未登入！', next));
         }
-        
         req.user = {
             id: currentUser._id.toString(),
             email: currentUser.email,
