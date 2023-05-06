@@ -8,8 +8,10 @@ import handleSuccess from '../../service/handleSuccess';
 import { generateSendJWT } from '../../middleware/auth';
 import bcrypt from 'bcryptjs';
 import {checkPwd, checkRegister} from'../../service/checkError';
+import firebaseAdmin from '../../middleware/firebase';
+import { GetSignedUrlConfig, GetSignedUrlCallback } from '@google-cloud/storage';
+
 // 引入上傳圖片會用到的套件
-const firebaseAdmin = require('../../middleware/firebase');
 const bucket = firebaseAdmin.storage().bucket();
 
 const user = {
@@ -166,14 +168,15 @@ const user = {
     // 監聽上傳狀態，當上傳完成時，會觸發 finish 事件
     blobStream.on('finish', () => {
       // 設定檔案的存取權限
-      const config = {
+      const config: GetSignedUrlConfig = {
         action: 'read', // 權限
         expires: '12-31-2500', // 網址的有效期限
       };
+      const callback: GetSignedUrlCallback = (err: Error | null, fileUrl?: string) => {
+        return handleSuccess(res, fileUrl);
+      };
       // 取得檔案的網址
-      blob.getSignedUrl(config, (err: Error, fileUrl: string) => {
-        handleSuccess(res, fileUrl)
-      });
+      blob.getSignedUrl(config, callback);
     });
   
     // 如果上傳過程中發生錯誤，會觸發 error 事件

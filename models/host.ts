@@ -1,25 +1,15 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface Profiles {
-  _id: string;
-  username: string;
-  picture?: string;
-  password?: string;
-}
-
-export interface IUser extends Document {
+export interface IHost extends Document {
   username: string;
   email: string;
-  account?: string;
-  googleId?: string;
+  account: string;
   password: string;
   picture?: string;
   role: string;
-  loginType: string;
   isDisabled: Boolean;
   createdAt?: Date;
   updatedAt?: Date;
-  Timestamp?: Date;
   token?: string;
 }
 
@@ -56,13 +46,8 @@ const userSchema: Schema = new mongoose.Schema({
   },
   role:{
     type: String,
-    default: "user",
-    enum:["user"]
-  },
-  loginType: {
-    type: String,
-    default: "normal",
-    enum:["normal","google"]
+    default: "host",
+    enum:["host","staff"]
   },
   isDisabled: {     
     type: Boolean,
@@ -78,18 +63,12 @@ const userSchema: Schema = new mongoose.Schema({
     default: Date.now,
     select: false
   },
-  // google 登入時間
-  Timestamp: {
-    type: Date,
-    default: "",
-    select: false
-  },
   token: {
     type: String,
     default: ""
   }
 });
 
-const User = mongoose.model<IUser>('user', userSchema);
+const Host = mongoose.model<IHost>('host', userSchema);
 
-export default User;
+export default Host;

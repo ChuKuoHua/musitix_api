@@ -54,7 +54,7 @@ const memberManage = {
     }
   },
   // 刪除會員(後端用)
-  async clearUser(req: Request, res: Response, next: NextFunction) {
+  async deleteUser(req: Request, res: Response, next: NextFunction) {
     let { userId, isDisabled } = req.body;
 
     // 檢查有無此會員

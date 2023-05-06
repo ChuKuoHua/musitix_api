@@ -2,7 +2,8 @@ import { Response, NextFunction } from 'express';
 import { Payload, AuthRequest } from '../models/other';
 import appError from '../service/appError';
 import handleErrorAsync from '../service/handleErrorAsync';
-import User, { Profiles } from '../models/users';
+import { Profiles } from '../models/users';
+import Host from '../models/host';
 
 const jwt = require('jsonwebtoken');
 const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:NextFunction) => {
@@ -29,7 +30,7 @@ const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:Ne
     })
   })
 
-  const currentUser = await User.findById(decoded.id);
+  const currentUser = await Host.findById(decoded.id);
   if (currentUser !== null) {
     if(!currentUser.token) {
       return next(appError(401,'你尚未登入！',next));
@@ -52,23 +53,24 @@ const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:Ne
   next();
 });
 
-const generateSendAdminJWT = async (user: Profiles, statusCode: number, res: Response) => {
+const generateSendAdminJWT = async (host: Profiles, statusCode: number, res: Response) => {
   // 產生 JWT token
-  const token = jwt.sign({id:user._id},process.env.JWT_SECRET,{
+  const token = jwt.sign({id:host._id},process.env.JWT_SECRET,{
     expiresIn: process.env.JWT_EXPIRES_DAY
   });
 
-  await User.findByIdAndUpdate(user._id,
+  await Host.findByIdAndUpdate(host._id,
     {
       token: token
     }
   );
-  user.password = undefined;
+  host.password = undefined;
   res.status(statusCode).json({
     message: '成功',
     user:{
       token,
-      username: user.username, // 暱稱
+      username: host.username, // 暱稱
+      picture: host.picture // 個人頭像
     }
   });
 } 

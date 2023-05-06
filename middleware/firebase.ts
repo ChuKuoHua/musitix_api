@@ -23,5 +23,4 @@ admin.initializeApp({
   storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
 });
 
-module.exports = admin;
 export default admin;

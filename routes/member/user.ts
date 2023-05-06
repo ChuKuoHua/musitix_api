@@ -5,7 +5,6 @@ import { isAuth } from '../../middleware/auth';
 import upload from '../../service/image';
 
 const router = express.Router();
-
 // 登入
 router.post('/login', handleErrorAsync(userControllers.login));
 // 註冊
