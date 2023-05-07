@@ -203,10 +203,10 @@ const admin = {
       handleSuccess(res, '密碼已修改');
     }
   },
-  // 主辦作廢
+  // 主辦刪除
   async deleteHost (req: Request, res:Response, next: NextFunction) {
     await Host.deleteOne({id: req.params.id});
-    handleSuccess(res, '已作廢');
+    handleSuccess(res, '已刪除');
   }
 }
 

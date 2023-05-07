@@ -32,11 +32,51 @@ const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: Ne
   })
   
   const currentUser = await User.findById(decoded.id);
- 
   if (currentUser !== null) {
     if(!currentUser.token) {
       return next(appError(401, '你尚未登入！', next));
     }
+    req.user = {
+      id: currentUser._id.toString(),
+      email: currentUser.email,
+      username: currentUser.username,
+      picture: currentUser.picture ?? null,
+    };
+  } else {
+    return next(appError(401, '無效的 token', next));
+  }
+
+  next();
+});
+
+const isForgotAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
+  // 確認 token 是否存在
+  let token: string | null | undefined;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  
+  if (!token) {
+    return next(appError(401, '查無會員', next));
+  }
+  
+  // 驗證 token 正確性
+  const decoded = await new Promise<Payload>((resolve, reject) => {
+    jwt.verify(token,process.env.JWT_SECRET!, (err: Error, payload: Payload) => {
+      if(err){
+        reject(err)
+      }else{
+        resolve(payload)
+      }
+    })
+  })
+  
+  const currentUser = await User.findById(decoded.id);
+  if (currentUser !== null) {
     req.user = {
       id: currentUser._id.toString(),
       email: currentUser.email,
@@ -76,5 +116,6 @@ const generateSendJWT = async (user: Profiles, statusCode: number, res: Response
 
 export {
   isAuth,
+  isForgotAuth,
   generateSendJWT
 }

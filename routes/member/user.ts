@@ -1,7 +1,7 @@
 import express from 'express';
 import handleErrorAsync from '../../service/handleErrorAsync';
 import userControllers from '../../controllers/member/user';
-import { isAuth } from '../../middleware/auth';
+import { isAuth, isForgotAuth } from '../../middleware/auth';
 import upload from '../../service/image';
 
 const router = express.Router();
@@ -19,5 +19,9 @@ router.patch('/profiles', isAuth, handleErrorAsync(userControllers.updateProfile
 router.patch('/updatePassword', isAuth, handleErrorAsync(userControllers.updatePassword));
 // 上傳圖片
 router.post('/picture', isAuth, upload, handleErrorAsync(userControllers.uploadUserImage));
+// (忘記密碼) email 寄信
+router.post('/forgot_password',  handleErrorAsync(userControllers.forgotPassword));
+// (忘記密碼) 修改密碼
+router.patch('/reset_password', isForgotAuth, handleErrorAsync(userControllers.resetPassword));
 
 export default router;

@@ -1,4 +1,4 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { AuthRequest, imageRequest } from '../../models/other';
 import User, { Profiles } from '../../models/users';
 import { HTTPError } from '../../models/error';
@@ -10,6 +10,8 @@ import bcrypt from 'bcryptjs';
 import {checkPwd, checkRegister} from'../../service/checkError';
 import firebaseAdmin from '../../middleware/firebase';
 import { GetSignedUrlConfig, GetSignedUrlCallback } from '@google-cloud/storage';
+import nodemailer from 'nodemailer';
+import * as jwt from 'jsonwebtoken';
 
 // 引入上傳圖片會用到的套件
 const bucket = firebaseAdmin.storage().bucket();
@@ -193,7 +195,7 @@ const user = {
     const userId = req.user.id
     const user = await User.findOne(
       {
-        userId
+        _id: userId
       },
     ).select('+password');
     if(user) {
@@ -226,6 +228,111 @@ const user = {
       );
 
       handleSuccess(res, '密碼已修改');
+    }
+  },
+  // 忘記密碼寄信
+  async forgotPassword (req: Request, res: Response, next: NextFunction) {
+    const { email } = req.body;
+    const user = await User.findOne(
+      {
+        email
+      }
+    );
+
+    if(!user) {
+      return next(appError("400","無此會員信箱",next));
+    }
+
+    const secretKey: string = process.env.JWT_SECRET ?? ''
+    const token = jwt.sign(
+      {id:user._id}, secretKey, {
+      expiresIn: process.env.MAIL_EXPIRES_TIME
+    });
+    
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        type: "OAuth2",
+        user: process.env.ACCOUNT,
+        clientId: process.env.CLINENTID,
+        clientSecret: process.env.CLINENTSECRET,
+        refreshToken: process.env.REFRESHTOKEN,
+        accessToken: process.env.ACCESSTOKEN,
+      },
+      tls: {
+        rejectUnauthorized: false // 忽略憑證錯誤
+      }
+    });
+    const mailOptions = {
+      form: process.env.ACCOUNT,
+      to : email,
+      subject: 'musitix 重設密碼連結',
+      html: `
+      <p>親愛的 musitix 會員您好</p>
+      <p>您收到這封郵件是因為我們收到了您重設密碼的請求。</p>
+      <p>若您確定要重設密碼，請點擊以下連結：</p>
+      <a
+        href="http://127.0.0.1:3000/${token}"
+        style="
+          background-color: #111211;
+          border: none;
+          color: white;
+          padding: 10px 15px;
+          text-decoration: none;
+          cursor: pointer;
+          border-radius: 5px;
+          font-size: 14px;
+        "
+      >密碼重設</a>
+      <p>此連結將會帶您前往密碼重設頁面。如果您未發出此請求，請忽略此郵件，您的密碼不會有任何更改。</p>
+      <p>謝謝！</p>
+      <p>musitix 活動主辦方</p>
+      `
+    }
+    
+    transporter.sendMail(mailOptions, (error,info) => {
+      if(error){
+        return next(appError(500, '送出失敗', next));
+      }
+      handleSuccess(res, '寄信成功')
+    })
+  },
+  // 忘記密碼/密碼修改
+  async resetPassword (req: AuthRequest, res:Response, next: NextFunction) {
+    let { newPassword, confirmPassword } = req.body;
+    const userId = req.user.id
+    const user = await User.findOne(
+      {
+        _id: userId
+      },
+    );
+    if(user) {
+      if(!newPassword) {
+        return next(appError(400, '請輸入新密碼', next));
+      }
+      const errorMsg = []
+      // 密碼檢查
+      const pwdError = checkPwd(newPassword, confirmPassword)
+      if(pwdError) {
+        errorMsg.push(pwdError)
+      }
+  
+      if(errorMsg.length > 0) {
+        return next(appError(400, errorMsg, next));
+      }
+      newPassword = await bcrypt.hash(newPassword, 12);
+      
+      await User.findByIdAndUpdate(req.user.id,
+        {
+          password: newPassword
+        }
+      );
+
+      handleSuccess(res, '密碼已修改');
+    } else {
+      return next(appError(400, '查無此會員', next));
     }
   },
 }

@@ -35,7 +35,7 @@ const resErrorAll = (err: IError, req: Request, res: Response, next: NextFunctio
   if(err.message === 'invalid signature') {
     return res.status(code).send({
       status: 'error',
-      message: '你尚未登入！'
+      message: '無此會員'
     });
   } else if (err.message === 'invalid token') {
     return res.status(code).send({

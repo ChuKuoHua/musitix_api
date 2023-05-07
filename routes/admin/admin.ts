@@ -19,6 +19,6 @@ router.patch('/profiles', isAdmin, handleErrorAsync(adminControllers.updateProfi
 router.patch('/updatePassword', isAdmin, handleErrorAsync(adminControllers.updatePassword));
 // 上傳圖片
 router.post('/picture', isAdmin, upload, handleErrorAsync(adminControllers.uploadUserImage));
-// 作廢主辦
+// 刪除主辦
 router.delete('/deleteHost/:id', handleErrorAsync(adminControllers.deleteHost));
 export default router;
