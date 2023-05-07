@@ -13,7 +13,7 @@ const bucket = firebaseAdmin.storage().bucket();
 const activityManage = {
   async createActivity(req: Request<any, any, CreateActivityCommand>, res: Response, next: NextFunction) {
     if (req.body) {
-      const { title, sponsorName, location, startDate, endDate, mainImageUrl,
+      const { title, sponsorName, location, mapUrl, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate } = req.body;
       const status: ActivityStatus = ActivityStatus.Unpublished;
 
@@ -22,7 +22,7 @@ const activityManage = {
       const maxPrice = Math.max(...priceList);
 
       const activity: Activity = {
-        title, sponsorName, location, startDate, endDate, mainImageUrl,
+        title, sponsorName, location, mapUrl, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate,
         status, minPrice, maxPrice
       }
@@ -44,7 +44,7 @@ const activityManage = {
     }
 
     if (req.body) {
-      const { title, sponsorName, location, startDate, endDate, mainImageUrl,
+      const { title, sponsorName, location, mapUrl, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate } = req.body;
 
       const status: ActivityStatus = ActivityStatus.Unpublished;
@@ -54,7 +54,7 @@ const activityManage = {
       const maxPrice = Math.max(...priceList);
 
       const activity: Activity = {
-        title, sponsorName, location, startDate, endDate, mainImageUrl,
+        title, sponsorName, location, mapUrl, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate,
         status, minPrice, maxPrice
       }
