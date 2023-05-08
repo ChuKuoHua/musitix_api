@@ -12,6 +12,7 @@ import firebaseAdmin from '../../middleware/firebase';
 import { GetSignedUrlConfig, GetSignedUrlCallback } from '@google-cloud/storage';
 import nodemailer from 'nodemailer';
 import * as jwt from 'jsonwebtoken';
+import redisClient from '../../connections/connectRedis';
 
 // 引入上傳圖片會用到的套件
 const bucket = firebaseAdmin.storage().bucket();
@@ -38,7 +39,6 @@ const user = {
     if(!auth){
       return next(appError(400, '密碼錯誤', next));
     }
-
     generateSendJWT(user, 200, res);
   },
   // NOTE 註冊
@@ -80,11 +80,12 @@ const user = {
   },
   // NOTE 登出
   async logout(req: AuthRequest, res:Response) {
-    await User.findByIdAndUpdate(req.user.id,
-      {
-        token: ''
-      }
-    );
+    // await User.findByIdAndUpdate(req.user.id,
+    //   {
+    //     token: ''
+    //   }
+    // );
+    await redisClient.del(req.user.id)
     handleSuccess(res, '已登出')
   },
   // NOTE 取得個人資料
@@ -104,49 +105,12 @@ const user = {
     const { username, picture } = req.body;
     const updateData = {} as Profiles;
     if(!username) {
-      // errorMsg.push("暱稱不得為空值");
       return next(appError("400", '暱稱不得為空值', next));
     }
-    // if(password) {
-    //   const email = req.user.email
-    //   const user = await User.findOne(
-    //     {
-    //       email
-    //     },
-    //   ).select('+password');
-    //   if(user) {
-    //     const auth = await bcrypt.compare(password, user.password);
-    //     if(!auth){
-    //       return next(appError(400,'原密碼不正確',next));
-    //     }
-    //     if(!newPassword) {
-    //       return next(appError(400,'請輸入新密碼',next));
-    //     }
-    //     if(password === newPassword) {
-    //       return next(appError(400,'新密碼不可於原密碼相同',next));
-    //     }
-    //     // 密碼檢查
-    //     if(checkPwdFormat(newPassword)) {
-    //       errorMsg.push(checkPwdFormat(newPassword));
-    //     }
-  
-    //     if(newPassword !== confirmPassword){
-    //       errorMsg.push("密碼不一致");
-    //     }
-    //     newPassword = await bcrypt.hash(password,12);
-    //   }
-    // }
-    // if(errorMsg.length > 0) {
-    //   return next(appError("400", errorMsg, next));
-    // }
     // 判斷是否有上傳圖片
     if(picture) {
       updateData.picture = picture
     }
-    // 判斷是否有修改密碼
-    // if(newPassword) {
-    //   updateData.password = newPassword
-    // }
     updateData.username = username
     
     await User.findByIdAndUpdate(req.user.id, {

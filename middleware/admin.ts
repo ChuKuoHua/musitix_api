@@ -4,6 +4,7 @@ import appError from '../service/appError';
 import handleErrorAsync from '../service/handleErrorAsync';
 import { Profiles } from '../models/users';
 import Host from '../models/host';
+import redisClient from '../connections/connectRedis';
 
 const jwt = require('jsonwebtoken');
 const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:NextFunction) => {
@@ -30,11 +31,19 @@ const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:Ne
     })
   })
 
+  const session = await redisClient.get(decoded.id).then((res: string | null) => {
+    return res
+  })
+  
+  if(!session) {
+    return next(appError(401, '你尚未登入！', next));
+  }
+
   const currentUser = await Host.findById(decoded.id);
   if (currentUser !== null) {
-    if(!currentUser.token) {
-      return next(appError(401,'你尚未登入！',next));
-    }
+    // if(!currentUser.token) {
+    //   return next(appError(401,'你尚未登入！',next));
+    // }
     req.admin = {
       id: currentUser._id.toString(),
       email: currentUser.email,
@@ -59,11 +68,14 @@ const generateSendAdminJWT = async (host: Profiles, statusCode: number, res: Res
     expiresIn: process.env.JWT_EXPIRES_DAY
   });
 
-  await Host.findByIdAndUpdate(host._id,
-    {
-      token: token
-    }
-  );
+  redisClient.set(host._id.toString(), token, {
+    EX: 24 * 60 * 60 * 7,
+  });
+  // await Host.findByIdAndUpdate(host._id,
+  //   {
+  //     token: token
+  //   }
+  // );
   host.password = undefined;
   res.status(statusCode).json({
     message: '成功',

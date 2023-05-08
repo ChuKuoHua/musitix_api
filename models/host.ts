@@ -10,7 +10,7 @@ export interface IHost extends Document {
   isDisabled: Boolean;
   createdAt?: Date;
   updatedAt?: Date;
-  token?: string;
+  // token?: string;
 }
 
 const userSchema: Schema = new mongoose.Schema({
@@ -63,10 +63,10 @@ const userSchema: Schema = new mongoose.Schema({
     default: Date.now,
     select: false
   },
-  token: {
-    type: String,
-    default: ""
-  }
+  // token: {
+  //   type: String,
+  //   default: ""
+  // }
 });
 
 const Host = mongoose.model<IHost>('host', userSchema);

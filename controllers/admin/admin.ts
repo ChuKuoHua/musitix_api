@@ -11,6 +11,7 @@ import bcrypt from 'bcryptjs';
 import validator from 'validator';
 import firebaseAdmin from '../../middleware/firebase';
 import { v4 as uuidv4 } from 'uuid';
+import redisClient from '../../connections/connectRedis';
 
 // 引入上傳圖片會用到的套件
 const bucket = firebaseAdmin.storage().bucket();
@@ -89,11 +90,12 @@ const admin = {
   },
   // NOTE 登出
   async logout(req: AuthRequest, res:Response) {
-    await Host.findByIdAndUpdate(req.admin.id,
-      {
-        token: ''
-      }
-    );
+    // await Host.findByIdAndUpdate(req.admin.id,
+    //   {
+    //     token: ''
+    //   }
+    // );
+    await redisClient.del(req.admin.id)
     handleSuccess(res, '已登出')
   },
   // NOTE 取得主辦資料
