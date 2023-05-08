@@ -1,8 +1,7 @@
-// import { createClient } from 'redis';
-const redis = require('redis');
+import { createClient } from 'redis';
 const redisUrl = process.env.REDIS_DATABASE;
 
-const redisClient = redis.createClient({
+const redisClient = createClient({
   url: redisUrl
 });
 const connectRedis = async () => {
@@ -15,6 +14,6 @@ const connectRedis = async () => {
 };
 connectRedis();
 
-redisClient.on('error', (err:any) => console.log(err));
+redisClient.on('error', (err: any) => console.log(err));
 
 export default redisClient;
