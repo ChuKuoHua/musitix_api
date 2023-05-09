@@ -22,4 +22,13 @@ router.post('/:id/cancel', isAdmin, handleErrorAsync(activityManage.cancelActivi
 // 上傳圖片(活動用)
 router.post('/upload_image', isAdmin, upload, handleErrorAsync(activityManage.uploadActivityImage));
 
+// 活動資料(內容)
+router.get('/', isAdmin, handleErrorAsync(activityManage.getAllActivities));
+
+// 活動資料(內容)by id
+router.get('/:id', isAdmin, handleErrorAsync(activityManage.getActivityById));
+
+// 熱門活動, 即將開賣, 近期活動
+router.get('/api/activities', handleErrorAsync(activityManage.getPublishedActivities));
+
 export default router;
