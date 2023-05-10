@@ -107,11 +107,11 @@ const generateSendJWT = async (user: Profiles, statusCode: number, res: Response
     expiresIn: process.env.JWT_EXPIRES_DAY
   });
 
-  const second: number | string = 24 * 60 * 60;
-  const day: string = process.env.REDIS_EXPIRES_DAY ? process.env.REDIS_EXPIRES_DAY : '30'
-  
+  const second: number = 24 * 60 * 60;
+  const day: number = process.env.REDIS_EXPIRES_DAY ? Number(process.env.REDIS_EXPIRES_DAY) : 30;
+
   redisClient.set(user._id.toString(), token, {
-    EX: second * parseInt(day, 10),
+    EX: second * day,
   });
   
   // await User.findByIdAndUpdate(user._id,
