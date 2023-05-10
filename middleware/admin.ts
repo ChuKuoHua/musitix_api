@@ -79,7 +79,6 @@ const generateSendAdminJWT = async (host: Profiles, statusCode: number, res: Res
   //     token: token
   //   }
   // );
-  host.password = undefined;
   res.status(statusCode).json({
     message: '成功',
     user:{
