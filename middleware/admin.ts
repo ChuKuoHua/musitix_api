@@ -68,8 +68,11 @@ const generateSendAdminJWT = async (host: Profiles, statusCode: number, res: Res
     expiresIn: process.env.JWT_EXPIRES_DAY
   });
 
+  const second: number | string = 24 * 60 * 60;
+  const day: string = process.env.REDIS_EXPIRES_DAY ? process.env.REDIS_EXPIRES_DAY : '30'
+  
   redisClient.set(host._id.toString(), token, {
-    EX: 24 * 60 * 60 * 7,
+    EX: second * parseInt(day, 10),
   });
   // await Host.findByIdAndUpdate(host._id,
   //   {
