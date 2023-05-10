@@ -40,6 +40,7 @@ const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: Ne
   if(!session) {
     return next(appError(401, '你尚未登入！', next));
   }
+  
   const currentUser = await User.findById(decoded.id);
   if (currentUser !== null) {
     // if(!currentUser.token) {

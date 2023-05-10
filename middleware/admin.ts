@@ -35,7 +35,7 @@ const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:Ne
     return res
   })
   
-  if(!session) {
+  if (!session) {
     return next(appError(401, '你尚未登入！', next));
   }
 
@@ -55,7 +55,7 @@ const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:Ne
     return next(appError(401, '無效的 token', next));
   }
   
-  if(req.admin?.role && req.admin.role !== 'host') {
+  if (req.admin?.role && req.admin.role !== 'host') {
     return next(appError(401,'此帳號權限不足',next));
   }
 
