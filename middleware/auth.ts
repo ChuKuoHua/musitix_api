@@ -119,7 +119,6 @@ const generateSendJWT = async (user: Profiles, statusCode: number, res: Response
   //     token: token
   //   }
   // );
-  user.password = undefined;
   res.status(statusCode).json({
     message: '成功',
     user:{

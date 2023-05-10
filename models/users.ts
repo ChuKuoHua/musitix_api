@@ -4,7 +4,6 @@ export interface Profiles {
   _id: string;
   username: string;
   picture?: string;
-  password?: string;
 }
 
 export interface IUser extends Document {

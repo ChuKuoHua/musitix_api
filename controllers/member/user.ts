@@ -10,7 +10,6 @@ import bcrypt from 'bcryptjs';
 import {checkPwd, checkRegister} from'../../service/checkError';
 import firebaseAdmin from '../../middleware/firebase';
 import { GetSignedUrlConfig, GetSignedUrlCallback } from '@google-cloud/storage';
-import nodemailer from 'nodemailer';
 import * as jwt from 'jsonwebtoken';
 import redisClient from '../../connections/connectRedis';
 import { transporter, mailOptions } from '../../service/email';
@@ -220,11 +219,9 @@ const user = {
     // email 寄信
     transporter.sendMail(options, (error, info) => {
       if(error){
-        console.log(error);
-        
-        return next(appError(500, error, next));
+        return next(appError(500, '送出失敗', next));
       }
-      handleSuccess(res, '寄信成功')
+      handleSuccess(res, '寄信成功');
     })
   },
   // NOTE 忘記密碼/密碼修改
