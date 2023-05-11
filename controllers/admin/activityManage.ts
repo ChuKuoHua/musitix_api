@@ -137,28 +137,20 @@ const activityManage = {
     blobStream.end(file.buffer);
   },
   async getAllActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
       const activities = await activityService.getAllActivities();
       handleSuccess(res, activities)
-    } catch (error) {
-      appError(500, "Internal Server Error", next);
-    }
   },
   async getActivityById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
-    try {
+
       const activity = await activityService.getActivityById(id);
       if (activity) {
         handleSuccess(res, activity)
       } else {
         appError(404, "Activity not found", next);
       }
-    } catch (error) {
-      appError(500, "Internal Server Error", next);
-    }
   },
   async getPublishedActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
 
       const activities: Activity[] = await ActivityModel.find().lean();
 
@@ -195,10 +187,6 @@ const activityManage = {
           recentActivities
       };
       handleSuccess(res, response)
-    } catch (error) {
-      return appError(500, "Failed to retrieve activities", next);
-    }
-
   }
 
 }

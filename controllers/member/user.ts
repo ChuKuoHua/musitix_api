@@ -21,6 +21,7 @@ const user = {
   // NOTE 登入
   async login(req: AuthRequest, res: Response, next: NextFunction) {
     const { email, password } = req.body;
+    console.log(email)
     if (!email || !password) {
       return next(appError(400, '帳號或密碼錯誤', next));
     }
