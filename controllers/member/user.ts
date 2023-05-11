@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthRequest, imageRequest } from '../../models/other';
-import User, { Profiles } from '../../models/users';
+import User, { PreFilledInfo, Profiles } from '../../models/users';
 import { HTTPError } from '../../models/error';
 import { v4 as uuidv4 } from 'uuid';
 import appError from '../../service/appError';
@@ -298,6 +298,26 @@ const user = {
     } else {
       return next(appError(400, '查無此會員', next));
     }
+  },
+  // 取得預填資料
+  async getPreFilledInfo(req: AuthRequest, res: Response, next: NextFunction) {
+    const userId = req.user.id;
+    const data = await User
+      .findById(userId)
+      .select('preFilledInfo');
+
+    handleSuccess(res, data!.preFilledInfo);
+  },
+  // 更新預填資料
+  async updatePreFilledInfo(req: AuthRequest, res: Response, next: NextFunction) {
+    const userId = req.user.id;
+    const { email, buyer, cellPhone, address } = req.body;
+    const preFilledInfo = { email, buyer, cellPhone, address } as PreFilledInfo;
+
+    const data = await User
+      .findByIdAndUpdate(userId, { preFilledInfo });
+
+    handleSuccess(res, '修改成功');
   },
 }
 
