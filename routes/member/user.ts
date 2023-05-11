@@ -20,8 +20,12 @@ router.patch('/updatePassword', isAuth, handleErrorAsync(userControllers.updateP
 // 上傳圖片
 router.post('/picture', isAuth, upload, handleErrorAsync(userControllers.uploadUserImage));
 // (忘記密碼) email 寄信
-router.post('/forgot_password',  handleErrorAsync(userControllers.forgotPassword));
+router.post('/forgot_password', handleErrorAsync(userControllers.forgotPassword));
 // (忘記密碼) 修改密碼
 router.patch('/reset_password', isForgotAuth, handleErrorAsync(userControllers.resetPassword));
+// 取得預填資訊
+router.get('/pre_filled_info', isAuth, handleErrorAsync(userControllers.getPreFilledInfo));
+// 修改預填資訊
+router.put('/pre_filled_info', isAuth, handleErrorAsync(userControllers.updatePreFilledInfo));
 
 export default router;

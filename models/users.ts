@@ -21,7 +21,24 @@ export interface IUser extends Document {
   updatedAt?: Date;
   Timestamp?: Date;
   // token?: string;
+
+  preFilledInfo: PreFilledInfo;
 }
+
+// 預填資料
+export interface PreFilledInfo {
+  buyer?: string;
+  email?: string;
+  cellPhone?: string;
+  address?: string;
+}
+
+const preFilledInfoSchema: Schema<PreFilledInfo> = new mongoose.Schema({
+  email: String,
+  buyer: String,
+  cellPhone: String,
+  address: String,
+}, { _id: false });
 
 const userSchema: Schema = new mongoose.Schema({
   username: {
@@ -88,6 +105,19 @@ const userSchema: Schema = new mongoose.Schema({
   //   type: String,
   //   default: ""
   // }
+
+  preFilledInfo: {
+    type: preFilledInfoSchema,
+    default: function (this: IUser) {
+      const preFilledInfo = {
+        email: this.email,
+        buyer: '',
+        cellPhone: '',
+        address: ''
+      }
+      return preFilledInfo;
+    }
+  }
 });
 
 const User = mongoose.model<IUser>('user', userSchema);
