@@ -12,7 +12,7 @@ import ActivityService from '../../service/actionActivity';
 const bucket = firebaseAdmin.storage().bucket();
 const activityService: ActivityService = new ActivityService();
 const activityManage = {
-  
+
   async createActivity(req: Request<any, any, CreateActivityCommand>, res: Response, next: NextFunction) {
     if (req.body) {
       const { title, sponsorName, location, mapUrl, startDate, endDate, mainImageUrl,
@@ -137,20 +137,24 @@ const activityManage = {
     blobStream.end(file.buffer);
   },
   async getAllActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
-      const activities = await activityService.getAllActivities();
-      handleSuccess(res, activities)
+    const activities = await activityService.getAllActivities();
+    handleSuccess(res, activities)
   },
   async getActivityById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
-
+    try {
       const activity = await activityService.getActivityById(id);
       if (activity) {
         handleSuccess(res, activity)
       } else {
         appError(404, "Activity not found", next);
       }
+    } catch (error) {
+      appError(500, "Internal Server Error", next);
+    }
   },
   async getPublishedActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
 
       const activities: Activity[] = await ActivityModel.find().lean();
 
@@ -187,6 +191,10 @@ const activityManage = {
           recentActivities
       };
       handleSuccess(res, response)
+    } catch (error) {
+      return appError(500, "Failed to retrieve activities", next);
+    }
+
   }
 
 }
