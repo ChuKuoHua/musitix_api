@@ -4,8 +4,7 @@ import appError from '../service/appError';
 import handleErrorAsync from '../service/handleErrorAsync';
 import User, { Profiles } from '../models/users';
 import redisClient from '../connections/connectRedis';
-
-const jwt = require('jsonwebtoken');
+import jsonwebtoken from 'jsonwebtoken';
 
 const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
   // 確認 token 是否存在
@@ -24,11 +23,11 @@ const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: Ne
   
   // 驗證 token 正確性
   const decoded = await new Promise<Payload>((resolve, reject) => {
-    jwt.verify(token,process.env.JWT_SECRET!, (err: Error, payload: Payload) => {
+    jsonwebtoken.verify(token!, process.env.JWT_SECRET!, (err: jsonwebtoken.VerifyErrors | null, payload) => {
       if(err){
         reject(err)
       }else{
-        resolve(payload)
+        resolve(payload as Payload)
       }
     })
   })
@@ -76,11 +75,11 @@ const isForgotAuth = handleErrorAsync(async (req: AuthRequest, res: Response, ne
   
   // 驗證 token 正確性
   const decoded = await new Promise<Payload>((resolve, reject) => {
-    jwt.verify(token,process.env.JWT_SECRET!, (err: Error, payload: Payload) => {
+    jsonwebtoken.verify(token!, process.env.JWT_SECRET!, (err: jsonwebtoken.VerifyErrors | null, payload) => {
       if(err){
         reject(err)
       }else{
-        resolve(payload)
+        resolve(payload as Payload)
       }
     })
   })
@@ -102,9 +101,9 @@ const isForgotAuth = handleErrorAsync(async (req: AuthRequest, res: Response, ne
 
 const generateSendJWT = async (user: Profiles, statusCode: number, res: Response) => {
   // 產生 JWT token
-  const token = jwt.sign({
+  const token = jsonwebtoken.sign({
     id: user._id,
-  },process.env.JWT_SECRET,{
+  }, process.env.JWT_SECRET!, {
     expiresIn: process.env.JWT_EXPIRES_DAY
   });
 

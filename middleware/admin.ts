@@ -5,8 +5,8 @@ import handleErrorAsync from '../service/handleErrorAsync';
 import { Profiles } from '../models/users';
 import Host from '../models/host';
 import redisClient from '../connections/connectRedis';
+import jsonwebtoken from 'jsonwebtoken';
 
-const jwt = require('jsonwebtoken');
 const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:NextFunction) => {
   // 確認 token 是否存在
   let token: string | null | undefined;
@@ -22,11 +22,11 @@ const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:Ne
   }
   // 驗證 token 正確性
   const decoded = await new Promise<Payload>((resolve, reject) => {
-    jwt.verify(token,process.env.JWT_SECRET!, (err: Error, payload: Payload) => {
+    jsonwebtoken.verify(token!, process.env.JWT_SECRET!, (err: jsonwebtoken.VerifyErrors | null, payload) => {
       if(err){
         reject(err)
       }else{
-        resolve(payload)
+        resolve(payload as Payload)
       }
     })
   })
@@ -64,7 +64,7 @@ const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:Ne
 
 const generateSendAdminJWT = async (host: Profiles, statusCode: number, res: Response) => {
   // 產生 JWT token
-  const token = jwt.sign({id:host._id},process.env.JWT_SECRET,{
+  const token = jsonwebtoken.sign({id:host._id}, process.env.JWT_SECRET! ,{
     expiresIn: process.env.JWT_EXPIRES_DAY
   });
 
