@@ -39,8 +39,10 @@ export interface AuthRequest extends Request {
 export interface searchRequest extends Request {
   query: {
     timeSort: string;
-    q: string;
+    search: string;
     disabled: string;
+    page: string;
+    limit: string;
   }
 }
 

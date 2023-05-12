@@ -10,23 +10,50 @@ const memberManage = {
     // asc 遞增(由小到大，由舊到新) createdAt ; 
     // desc 遞減(由大到小、由新到舊) "-createdAt"
     const timeSort = req.query.timeSort === "asc" ? "createdAt" : "-createdAt"
-    const q = req.query.q !== undefined ? new RegExp(req.query.q)
+    const q = req.query.search !== undefined ? new RegExp(req.query.search)
     : '';
     // 用來判斷作廢或未作廢資料
     const disabled = req.query.disabled ? req.query.disabled : false
-    
+    const page: number = req.query.page ? Number(req.query.page) : 1
+    const limit: number = req.query.limit ? Number(req.query.limit) : 25
+
     const data = await User.find({
       // 模糊搜尋多欄位
       $or: [
-        { id: {$regex: q } },
+        { id: { $regex: q } },
         { username: { $regex: q } },
         { email: { $regex: q } },
       ],
       role: "user",
       isDisabled: disabled
-    }).sort(timeSort)
-    
-    handleSuccess(res, data);
+    })
+    .sort(timeSort)
+    .skip((page - 1) * limit)
+    .limit(limit)
+
+    // 取得總數量
+    const count = await User.countDocuments({
+      $or: [
+        { id: { $regex: q } },
+        { username: { $regex: q } },
+        { email: { $regex: q } },
+      ],
+      role: "user",
+      isDisabled: disabled
+    });
+
+    // 計算總頁數
+    const totalPages = Math.ceil(count / limit);
+
+    const json = {
+      totalCount: count, // 總數量
+      totalPages: totalPages, // 總頁數
+      currentPage: page, // 目前頁數
+      limit: limit, // 顯示數量
+      users: data, // 會員資料
+    }
+
+    handleSuccess(res, json);
   },
   // NOTE 會員停用/啟用
   async invalidUser(req: Request, res: Response, next: NextFunction) {
