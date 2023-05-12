@@ -5,8 +5,8 @@ import handleErrorAsync from '../service/handleErrorAsync';
 import { Profiles } from '../models/users';
 import Host from '../models/host';
 import redisClient from '../connections/connectRedis';
+import jsonwebtoken from 'jsonwebtoken';
 
-const jwt = require('jsonwebtoken');
 const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:NextFunction) => {
   // 確認 token 是否存在
   let token: string | null | undefined;
@@ -22,11 +22,11 @@ const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:Ne
   }
   // 驗證 token 正確性
   const decoded = await new Promise<Payload>((resolve, reject) => {
-    jwt.verify(token,process.env.JWT_SECRET!, (err: Error, payload: Payload) => {
+    jsonwebtoken.verify(token!, process.env.JWT_SECRET!, (err: jsonwebtoken.VerifyErrors | null, payload) => {
       if(err){
         reject(err)
       }else{
-        resolve(payload)
+        resolve(payload as Payload)
       }
     })
   })
@@ -35,7 +35,7 @@ const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:Ne
     return res
   })
   
-  if(!session) {
+  if (!session) {
     return next(appError(401, '你尚未登入！', next));
   }
 
@@ -55,7 +55,7 @@ const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:Ne
     return next(appError(401, '無效的 token', next));
   }
   
-  if(req.admin?.role && req.admin.role !== 'host') {
+  if (req.admin?.role && req.admin.role !== 'host') {
     return next(appError(401,'此帳號權限不足',next));
   }
 
@@ -64,19 +64,21 @@ const isAdmin = handleErrorAsync(async (req: AuthRequest, res: Response, next:Ne
 
 const generateSendAdminJWT = async (host: Profiles, statusCode: number, res: Response) => {
   // 產生 JWT token
-  const token = jwt.sign({id:host._id},process.env.JWT_SECRET,{
+  const token = jsonwebtoken.sign({id:host._id}, process.env.JWT_SECRET! ,{
     expiresIn: process.env.JWT_EXPIRES_DAY
   });
 
+  const second: number = 24 * 60 * 60;
+  const day: number = process.env.REDIS_EXPIRES_DAY ? Number(process.env.REDIS_EXPIRES_DAY) : 30;
+  
   redisClient.set(host._id.toString(), token, {
-    EX: 24 * 60 * 60 * 7,
+    EX: second * day,
   });
   // await Host.findByIdAndUpdate(host._id,
   //   {
   //     token: token
   //   }
   // );
-  host.password = undefined;
   res.status(statusCode).json({
     message: '成功',
     user:{

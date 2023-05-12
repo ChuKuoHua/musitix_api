@@ -8,7 +8,6 @@ export interface ISession extends Session {
 
 export interface Payload {
   id: string;
-  session_id: string;
 }
 
 export interface AuthRequest extends Request {
@@ -40,8 +39,10 @@ export interface AuthRequest extends Request {
 export interface searchRequest extends Request {
   query: {
     timeSort: string;
-    q: string;
+    search: string;
     disabled: string;
+    page: string;
+    limit: string;
   }
 }
 

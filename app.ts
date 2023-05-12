@@ -14,8 +14,6 @@ require('./connections');
 // 伺服器錯誤
 require('./middleware/processError');
 
-const MongoStore = require('connect-mongo');
-
 // route
 import indexRouter from './routes/index';
 import userRouter from './routes/member/user';
