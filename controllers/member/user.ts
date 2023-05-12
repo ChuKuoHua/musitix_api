@@ -219,7 +219,9 @@ const user = {
     // email 寄信
     transporter.sendMail(options, (error, info) => {
       if(error){
-        return next(appError(500, '送出失敗', next));
+        console.log(error);
+        
+        return next(appError(500, error, next));
       }
       handleSuccess(res, '寄信成功');
     })
