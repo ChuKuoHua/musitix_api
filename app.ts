@@ -14,11 +14,10 @@ require('./connections');
 // 伺服器錯誤
 require('./middleware/processError');
 
-const MongoStore = require('connect-mongo');
-
 // route
 import indexRouter from './routes/index';
 import userRouter from './routes/member/user';
+import activityRouter from './routes/member/activity';
 import adminRouter from './routes/admin/admin';
 import activityManageRouter from './routes/admin/activityManage';
 import memberManageRouter from './routes/admin/memberManage';
@@ -41,6 +40,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // 前台
 app.use('/', indexRouter);
 app.use('/api/users', userRouter);
+app.use('/api/activities', activityRouter);
 
 // 後台
 app.use('/admin', adminRouter)

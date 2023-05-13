@@ -3,6 +3,7 @@ import express from 'express';
 import handleErrorAsync from '../../service/handleErrorAsync';
 import { isAdmin } from '../../middleware/admin';
 import activityManage from '../../controllers/admin/activityManage';
+import upload from '../../service/image';
 
 const router = express.Router();
 
@@ -18,7 +19,13 @@ router.post('/:id/publish', isAdmin, handleErrorAsync(activityManage.publishActi
 // 取消活動
 router.post('/:id/cancel', isAdmin, handleErrorAsync(activityManage.cancelActivity));
 
-// TODO 上傳圖片(活動內文用)
-// router.post('/upload_image', isAdmin, handleErrorAsync(activityManage.uploadImage));
+// 上傳圖片(活動用)
+router.post('/upload_image', isAdmin, upload, handleErrorAsync(activityManage.uploadActivityImage));
+
+// 活動資料(內容)
+router.get('/', isAdmin, handleErrorAsync(activityManage.getAllActivities));
+
+// 活動資料(內容)by id
+router.get('/:id', isAdmin, handleErrorAsync(activityManage.getActivityById));
 
 export default router;

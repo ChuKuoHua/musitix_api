@@ -9,7 +9,7 @@ const router = express.Router();
 router.get('/users_list', isAdmin, handleErrorAsync(memberControllers.usersList));
 // 會員停用/啟用
 router.delete('/invalid_user', isAdmin, handleErrorAsync(memberControllers.invalidUser));
-
-router.delete('/clear_user', isAdmin, handleErrorAsync(memberControllers.clearUser));
+// 刪除會員(後端用)
+router.delete('/delete_user', isAdmin, handleErrorAsync(memberControllers.deleteUser));
 
 export default router;

@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
+import admin from "firebase-admin";
+
 dotenv.config({ path: './.env' });
 
-const admin = require("firebase-admin");
 const config = {
   type: process.env.FIREBASE_TYPE,
   project_id: process.env.FIREBASE_PROJECT_ID,
@@ -16,8 +17,10 @@ const config = {
 };
 
 admin.initializeApp({
-    credential: admin.credential.cert(config),
-    storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
+  // https://stackoverflow.com/questions/50272165/firebase-import-service-throws-error
+  // 這裡的import會有問題，故轉成any
+  credential: admin.credential.cert(config as any),
+  storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
 });
 
-module.exports = admin;
+export default admin;
