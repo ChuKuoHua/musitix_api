@@ -33,13 +33,7 @@ exports.resErrorDev = resErrorDev;
 const resErrorAll = (err, req, res, next) => {
     const code = err.statusCode ? Number(err.statusCode) : 500;
     // 驗證 token
-    if (err.message === 'invalid signature') {
-        return res.status(code).send({
-            status: 'error',
-            message: '你尚未登入！'
-        });
-    }
-    else if (err.message === 'invalid token') {
+    if (err.message === 'invalid signature' || err.message === 'invalid token') {
         return res.status(code).send({
             status: 'error',
             message: '無效的 token'

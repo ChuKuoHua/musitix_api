@@ -59,7 +59,39 @@ const activityScheduleSchema = new mongoose_1.default.Schema({
             },
             '票種必填(至少一項)'
         ]
-    }
+    },
+    startTime: {
+        type: Date,
+        required: [true, '場次開始時間必填']
+    },
+    endTime: {
+        type: Date,
+        required: [true, '場次結束時間必填'],
+        validate: [
+            function () {
+                if ((0, lodash_1.isDate)(this.endTime) && (0, lodash_1.isDate)(this.startTime)) {
+                    return this.endTime > this.startTime;
+                }
+            },
+            '場次結束時間必須晚於場次開始時間'
+        ],
+    },
+    saleStartTime: {
+        type: Date,
+        required: [true, '場次開始時間必填']
+    },
+    saleEndTime: {
+        type: Date,
+        required: [true, '場次結束時間必填'],
+        validate: [
+            function () {
+                if ((0, lodash_1.isDate)(this.saleEndTime) && (0, lodash_1.isDate)(this.saleStartTime)) {
+                    return this.saleEndTime > this.saleStartTime;
+                }
+            },
+            '場次結束時間必須晚於場次開始時間'
+        ],
+    },
 });
 const activitySchema = new mongoose_1.default.Schema({
     title: {
@@ -78,6 +110,11 @@ const activitySchema = new mongoose_1.default.Schema({
         type: String,
         required: [true, '活動地點必填'],
         maxlength: [nameMaxLength, `活動地點超過最大長度限制: ${nameMaxLength}`],
+        trim: true
+    },
+    mapUrl: {
+        type: String,
+        required: [true, '地圖url必填'],
         trim: true
     },
     startDate: {
@@ -142,6 +179,12 @@ const activitySchema = new mongoose_1.default.Schema({
             '售票結束時間必須晚於售票開始時間'
         ],
     },
+    minPrice: {
+        type: Number
+    },
+    maxPrice: {
+        type: Number
+    }
 });
 const ActivityModel = mongoose_1.default.model('activities', activitySchema);
 exports.default = ActivityModel;

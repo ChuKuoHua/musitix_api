@@ -12,5 +12,6 @@ const router = express_1.default.Router();
 router.get('/users_list', admin_1.isAdmin, (0, handleErrorAsync_1.default)(memberManage_1.default.usersList));
 // 會員停用/啟用
 router.delete('/invalid_user', admin_1.isAdmin, (0, handleErrorAsync_1.default)(memberManage_1.default.invalidUser));
-router.delete('/clear_user', admin_1.isAdmin, (0, handleErrorAsync_1.default)(memberManage_1.default.clearUser));
+// 刪除會員(後端用)
+router.delete('/delete_user', admin_1.isAdmin, (0, handleErrorAsync_1.default)(memberManage_1.default.deleteUser));
 exports.default = router;

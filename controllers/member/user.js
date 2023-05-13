@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -19,14 +42,18 @@ const handleSuccess_1 = __importDefault(require("../../service/handleSuccess"));
 const auth_1 = require("../../middleware/auth");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const checkError_1 = require("../../service/checkError");
+const firebase_1 = __importDefault(require("../../middleware/firebase"));
+const jwt = __importStar(require("jsonwebtoken"));
+const connectRedis_1 = __importDefault(require("../../connections/connectRedis"));
+const email_1 = require("../../service/email");
 // 引入上傳圖片會用到的套件
-const firebaseAdmin = require('../../middleware/firebase');
-const bucket = firebaseAdmin.storage().bucket();
+const bucket = firebase_1.default.storage().bucket();
 const user = {
     // NOTE 登入
     login(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, password } = req.body;
+            console.log(email);
             if (!email || !password) {
                 return next((0, appError_1.default)(400, '帳號或密碼錯誤', next));
             }
@@ -85,9 +112,12 @@ const user = {
     // NOTE 登出
     logout(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield users_1.default.findByIdAndUpdate(req.user.id, {
-                token: ''
-            });
+            // await User.findByIdAndUpdate(req.user.id,
+            //   {
+            //     token: ''
+            //   }
+            // );
+            yield connectRedis_1.default.del(req.user.id);
             (0, handleSuccess_1.default)(res, '已登出');
         });
     },
@@ -109,48 +139,12 @@ const user = {
             const { username, picture } = req.body;
             const updateData = {};
             if (!username) {
-                // errorMsg.push("暱稱不得為空值");
                 return next((0, appError_1.default)("400", '暱稱不得為空值', next));
             }
-            // if(password) {
-            //   const email = req.user.email
-            //   const user = await User.findOne(
-            //     {
-            //       email
-            //     },
-            //   ).select('+password');
-            //   if(user) {
-            //     const auth = await bcrypt.compare(password, user.password);
-            //     if(!auth){
-            //       return next(appError(400,'原密碼不正確',next));
-            //     }
-            //     if(!newPassword) {
-            //       return next(appError(400,'請輸入新密碼',next));
-            //     }
-            //     if(password === newPassword) {
-            //       return next(appError(400,'新密碼不可於原密碼相同',next));
-            //     }
-            //     // 密碼檢查
-            //     if(checkPwdFormat(newPassword)) {
-            //       errorMsg.push(checkPwdFormat(newPassword));
-            //     }
-            //     if(newPassword !== confirmPassword){
-            //       errorMsg.push("密碼不一致");
-            //     }
-            //     newPassword = await bcrypt.hash(password,12);
-            //   }
-            // }
-            // if(errorMsg.length > 0) {
-            //   return next(appError("400", errorMsg, next));
-            // }
             // 判斷是否有上傳圖片
             if (picture) {
                 updateData.picture = picture;
             }
-            // 判斷是否有修改密碼
-            // if(newPassword) {
-            //   updateData.password = newPassword
-            // }
             updateData.username = username;
             yield users_1.default.findByIdAndUpdate(req.user.id, {
                 $set: updateData
@@ -160,8 +154,9 @@ const user = {
     },
     // NOTE 上傳個人圖片
     uploadUserImage(req, res, next) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            if (!req.files || !req.files.length) {
+            if (!((_a = req.files) === null || _a === void 0 ? void 0 : _a.length)) {
                 return next((0, appError_1.default)(400, "尚未上傳檔案", next));
             }
             // 取得上傳的檔案資訊列表裡面的第一個檔案
@@ -177,10 +172,11 @@ const user = {
                     action: 'read',
                     expires: '12-31-2500', // 網址的有效期限
                 };
+                const callback = (err, fileUrl) => {
+                    return (0, handleSuccess_1.default)(res, fileUrl);
+                };
                 // 取得檔案的網址
-                blob.getSignedUrl(config, (err, fileUrl) => {
-                    (0, handleSuccess_1.default)(res, fileUrl);
-                });
+                blob.getSignedUrl(config, callback);
             });
             // 如果上傳過程中發生錯誤，會觸發 error 事件
             blobStream.on('error', (err) => {
@@ -190,13 +186,13 @@ const user = {
             blobStream.end(file.buffer);
         });
     },
-    // 更新密碼
+    // NOTE 更新密碼
     updatePassword(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             let { password, newPassword, confirmPassword } = req.body;
             const userId = req.user.id;
             const user = yield users_1.default.findOne({
-                userId
+                _id: userId
             }).select('+password');
             if (user) {
                 const auth = yield bcryptjs_1.default.compare(password, user.password);
@@ -224,6 +220,89 @@ const user = {
                 });
                 (0, handleSuccess_1.default)(res, '密碼已修改');
             }
+        });
+    },
+    // NOTE 忘記密碼寄信
+    forgotPassword(req, res, next) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email } = req.body;
+            const user = yield users_1.default.findOne({
+                email
+            });
+            if (!user) {
+                return next((0, appError_1.default)("400", "無此會員信箱", next));
+            }
+            // 建立會員 token
+            const secretKey = (_a = process.env.JWT_SECRET) !== null && _a !== void 0 ? _a : '';
+            const token = jwt.sign({ id: user._id }, secretKey, {
+                expiresIn: process.env.MAIL_EXPIRES_TIME
+            });
+            // 建立 email 內容
+            const options = (0, email_1.mailOptions)(email, token);
+            // email 寄信
+            email_1.transporter.sendMail(options, (error, info) => {
+                if (error) {
+                    console.log(error);
+                    return next((0, appError_1.default)(500, error, next));
+                }
+                (0, handleSuccess_1.default)(res, '寄信成功');
+            });
+        });
+    },
+    // NOTE 忘記密碼/密碼修改
+    resetPassword(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let { newPassword, confirmPassword } = req.body;
+            const userId = req.user.id;
+            // 檢查會員是否存在
+            const user = yield users_1.default.findOne({
+                _id: userId
+            });
+            if (user) {
+                if (!newPassword) {
+                    return next((0, appError_1.default)(400, '請輸入新密碼', next));
+                }
+                const errorMsg = [];
+                // 密碼檢查
+                const pwdError = (0, checkError_1.checkPwd)(newPassword, confirmPassword);
+                if (pwdError) {
+                    errorMsg.push(pwdError);
+                }
+                if (errorMsg.length > 0) {
+                    return next((0, appError_1.default)(400, errorMsg, next));
+                }
+                newPassword = yield bcryptjs_1.default.hash(newPassword, 12);
+                // 修改密碼
+                yield users_1.default.findByIdAndUpdate(req.user.id, {
+                    password: newPassword
+                });
+                (0, handleSuccess_1.default)(res, '密碼已修改');
+            }
+            else {
+                return next((0, appError_1.default)(400, '查無此會員', next));
+            }
+        });
+    },
+    // 取得預填資料
+    getPreFilledInfo(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userId = req.user.id;
+            const data = yield users_1.default
+                .findById(userId)
+                .select('preFilledInfo');
+            (0, handleSuccess_1.default)(res, data.preFilledInfo);
+        });
+    },
+    // 更新預填資料
+    updatePreFilledInfo(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userId = req.user.id;
+            const { email, buyer, cellPhone, address } = req.body;
+            const preFilledInfo = { email, buyer, cellPhone, address };
+            const data = yield users_1.default
+                .findByIdAndUpdate(userId, { preFilledInfo });
+            (0, handleSuccess_1.default)(res, '修改成功');
         });
     },
 };

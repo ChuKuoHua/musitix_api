@@ -22,10 +22,12 @@ const memberManage = {
             // asc 遞增(由小到大，由舊到新) createdAt ; 
             // desc 遞減(由大到小、由新到舊) "-createdAt"
             const timeSort = req.query.timeSort === "asc" ? "createdAt" : "-createdAt";
-            const q = req.query.q !== undefined ? new RegExp(req.query.q)
+            const q = req.query.search !== undefined ? new RegExp(req.query.search)
                 : '';
             // 用來判斷作廢或未作廢資料
             const disabled = req.query.disabled ? req.query.disabled : false;
+            const page = req.query.page ? Number(req.query.page) : 1;
+            const limit = req.query.limit ? Number(req.query.limit) : 25;
             const data = yield users_1.default.find({
                 // 模糊搜尋多欄位
                 $or: [
@@ -35,8 +37,30 @@ const memberManage = {
                 ],
                 role: "user",
                 isDisabled: disabled
-            }).sort(timeSort);
-            (0, handleSuccess_1.default)(res, data);
+            })
+                .sort(timeSort)
+                .skip((page - 1) * limit)
+                .limit(limit);
+            // 取得總數量
+            const count = yield users_1.default.countDocuments({
+                $or: [
+                    { id: { $regex: q } },
+                    { username: { $regex: q } },
+                    { email: { $regex: q } },
+                ],
+                role: "user",
+                isDisabled: disabled
+            });
+            // 計算總頁數
+            const totalPages = Math.ceil(count / limit);
+            const json = {
+                totalCount: count,
+                totalPages: totalPages,
+                currentPage: page,
+                limit: limit,
+                users: data, // 會員資料
+            };
+            (0, handleSuccess_1.default)(res, json);
         });
     },
     // NOTE 會員停用/啟用
@@ -64,7 +88,7 @@ const memberManage = {
         });
     },
     // 刪除會員(後端用)
-    clearUser(req, res, next) {
+    deleteUser(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             let { userId, isDisabled } = req.body;
             // 檢查有無此會員

@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
+const firebase_admin_1 = __importDefault(require("firebase-admin"));
 dotenv_1.default.config({ path: './.env' });
-const admin = require("firebase-admin");
 const config = {
     type: process.env.FIREBASE_TYPE,
     project_id: process.env.FIREBASE_PROJECT_ID,
@@ -19,8 +19,10 @@ const config = {
     auth_provider_X509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
     client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL,
 };
-admin.initializeApp({
-    credential: admin.credential.cert(config),
+firebase_admin_1.default.initializeApp({
+    // https://stackoverflow.com/questions/50272165/firebase-import-service-throws-error
+    // 這裡的import會有問題，故轉成any
+    credential: firebase_admin_1.default.credential.cert(config),
     storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
 });
-module.exports = admin;
+exports.default = firebase_admin_1.default;

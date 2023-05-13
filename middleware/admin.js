@@ -15,8 +15,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateSendAdminJWT = exports.isAdmin = void 0;
 const appError_1 = __importDefault(require("../service/appError"));
 const handleErrorAsync_1 = __importDefault(require("../service/handleErrorAsync"));
-const users_1 = __importDefault(require("../models/users"));
-const jwt = require('jsonwebtoken');
+const host_1 = __importDefault(require("../models/host"));
+const connectRedis_1 = __importDefault(require("../connections/connectRedis"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const isAdmin = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     // 確認 token 是否存在
@@ -30,7 +31,7 @@ const isAdmin = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(vo
     }
     // 驗證 token 正確性
     const decoded = yield new Promise((resolve, reject) => {
-        jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
+        jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET, (err, payload) => {
             if (err) {
                 reject(err);
             }
@@ -39,11 +40,17 @@ const isAdmin = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(vo
             }
         });
     });
-    const currentUser = yield users_1.default.findById(decoded.id);
+    const session = yield connectRedis_1.default.get(decoded.id).then((res) => {
+        return res;
+    });
+    if (!session) {
+        return next((0, appError_1.default)(401, '你尚未登入！', next));
+    }
+    const currentUser = yield host_1.default.findById(decoded.id);
     if (currentUser !== null) {
-        if (!currentUser.token) {
-            return next((0, appError_1.default)(401, '你尚未登入！', next));
-        }
+        // if(!currentUser.token) {
+        //   return next(appError(401,'你尚未登入！',next));
+        // }
         req.admin = {
             id: currentUser._id.toString(),
             email: currentUser.email,
@@ -61,20 +68,27 @@ const isAdmin = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(vo
     next();
 }));
 exports.isAdmin = isAdmin;
-const generateSendAdminJWT = (user, statusCode, res) => __awaiter(void 0, void 0, void 0, function* () {
+const generateSendAdminJWT = (host, statusCode, res) => __awaiter(void 0, void 0, void 0, function* () {
     // 產生 JWT token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jsonwebtoken_1.default.sign({ id: host._id }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRES_DAY
     });
-    yield users_1.default.findByIdAndUpdate(user._id, {
-        token: token
+    const second = 24 * 60 * 60;
+    const day = process.env.REDIS_EXPIRES_DAY ? Number(process.env.REDIS_EXPIRES_DAY) : 30;
+    connectRedis_1.default.set(host._id.toString(), token, {
+        EX: second * day,
     });
-    user.password = undefined;
+    // await Host.findByIdAndUpdate(host._id,
+    //   {
+    //     token: token
+    //   }
+    // );
     res.status(statusCode).json({
         message: '成功',
         user: {
             token,
-            username: user.username, // 暱稱
+            username: host.username,
+            picture: host.picture // 個人頭像
         }
     });
 });

@@ -4,12 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
-const preFilledInfoSchema = new mongoose_1.default.Schema({
-    email: String,
-    buyer: String,
-    cellPhone: String,
-    address: String,
-}, { _id: false });
 const userSchema = new mongoose_1.default.Schema({
     username: {
         type: String,
@@ -43,13 +37,8 @@ const userSchema = new mongoose_1.default.Schema({
     },
     role: {
         type: String,
-        default: "user",
-        enum: ["user"]
-    },
-    loginType: {
-        type: String,
-        default: "normal",
-        enum: ["normal", "google"]
+        default: "host",
+        enum: ["host", "staff"]
     },
     isDisabled: {
         type: Boolean,
@@ -65,28 +54,10 @@ const userSchema = new mongoose_1.default.Schema({
         default: Date.now,
         select: false
     },
-    // google 登入時間
-    Timestamp: {
-        type: Date,
-        default: "",
-        select: false
-    },
     // token: {
     //   type: String,
     //   default: ""
     // }
-    preFilledInfo: {
-        type: preFilledInfoSchema,
-        default: function () {
-            const preFilledInfo = {
-                email: this.email,
-                buyer: '',
-                cellPhone: '',
-                address: ''
-            };
-            return preFilledInfo;
-        }
-    }
 });
-const User = mongoose_1.default.model('user', userSchema);
-exports.default = User;
+const Host = mongoose_1.default.model('host', userSchema);
+exports.default = Host;
