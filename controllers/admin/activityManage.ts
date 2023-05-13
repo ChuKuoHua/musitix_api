@@ -142,13 +142,61 @@ const activityManage = {
   },
   async getActivityById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
-    const activity = await activityService.getActivityById(id);
-    if (activity) {
-      handleSuccess(res, activity)
-    } else {
-      appError(404, "Activity not found", next);
+    try {
+      const activity = await activityService.getActivityById(id);
+      if (activity) {
+        handleSuccess(res, activity)
+      } else {
+        appError(404, "Activity not found", next);
+      }
+    } catch (error) {
+      appError(500, "Internal Server Error", next);
     }
   },
+  async getPublishedActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+
+      const activities: Activity[] = await ActivityModel.find().lean();
+
+      const hotActivities = activities.map(activity => ({
+        title: activity.title,
+        sponsorName: activity.sponsorName,
+        startDate: activity.startDate,
+        endDate: activity.endDate,
+        minPrice: activity.minPrice,
+        maxPrice: activity.maxPrice,
+        mainImageUrl: activity.mainImageUrl,
+        ticketCount: activity.schedules.reduce((total, schedule) => {
+          return total + schedule.ticketCategories.reduce((sum, category) => sum + category.totalQuantity, 0);
+        }, 0)
+      }));
+
+      const upcomingActivities = activities.filter(activity => {
+        const saleStartDate = new Date(activity.saleStartDate);
+        const sevenDaysFromNow = new Date();
+        sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+        return saleStartDate <= sevenDaysFromNow;
+      });
+
+      const recentActivities = activities.filter(activity => {
+        const startDate = new Date(activity.startDate);
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        return startDate <= sevenDaysAgo;
+      });
+
+      const response = {
+          hotActivities,
+          upcomingActivities,
+          recentActivities
+      };
+      handleSuccess(res, response)
+    } catch (error) {
+      return appError(500, "Failed to retrieve activities", next);
+    }
+
+  }
+
 }
 
 export default activityManage;
