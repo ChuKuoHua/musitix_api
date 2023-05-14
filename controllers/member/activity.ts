@@ -42,15 +42,44 @@ const activity = {
     handleSuccess(res, response)
   },
   async searchActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { keyword } = req.query;
-    const activities: Activity[] = await ActivityModel.find().lean();
-    keyword && activities.filter(activity => activity.title.includes(keyword as string));
+    const { subject, minPrice, maxPrice, startDate, endDate } = req.query;
+    const query: any = {};
+
+    if (subject) {
+      query.title = { $regex: subject, $options: 'i' };
+    }
+
+    if (minPrice) {
+      query.minPrice = { $gte: Number(minPrice) };
+    }
+
+    if (maxPrice) {
+      query.maxPrice = { $lte: Number(maxPrice) };
+    }
+
+    if (startDate) {
+      query.startDate = { $gte: new Date(startDate.toString())};
+    }
+
+    if (endDate) {
+      query.endDate = { $lte: new Date(endDate.toString())};
+    }
+
+    const activities: Activity[] = await ActivityModel.find(query).lean();
+
     handleSuccess(res, activities);
   },
   async getActivityById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
-    const activity: Activity | null= await ActivityModel.findById(id).lean();
+    const activity: Activity | null = await ActivityModel.findById(id).lean();
     handleSuccess(res, activity);
+  },
+  async bookingActivity(req: Request, res: Response, next: NextFunction): Promise<void> {
+    //this need post method for bookingActivity
+    const { id } = req.params;
+    const { ticketCategories } = req.body;
+
+
   }
 }
 
