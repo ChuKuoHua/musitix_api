@@ -8,17 +8,13 @@ const router = express.Router();
 // 熱門活動, 即將開賣, 近期活動
 router.get('/', handleErrorAsync(activityController.getPublishedActivities));
 
-// TODO 
-// 活動搜尋
-// router.get('/search', handleErrorAsync(activityController.XXXXXX));
+//活動搜尋
+router.get('/search', handleErrorAsync(activityController.searchActivities));
 
-// TODO
-// 活動詳細介紹
-// router.get('/:id', handleErrorAsync(activityController.XXXXXX));
+//活動詳細介紹
+router.get('/:id', handleErrorAsync(activityController.getActivityById));
 
-// TODO
-// 送出訂票資訊
-// router.post('/:id/booking', isAuth, handleErrorAsync(activityController.XXXXXX));
-
+//送出訂票資訊
+router.post('/:id/booking', isAuth, handleErrorAsync(activityController.bookingActivity));
 
 export default router;

@@ -40,6 +40,17 @@ const activity = {
       recentActivities
     };
     handleSuccess(res, response)
+  },
+  async searchActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { keyword } = req.query;
+    const activities: Activity[] = await ActivityModel.find().lean();
+    keyword && activities.filter(activity => activity.title.includes(keyword as string));
+    handleSuccess(res, activities);
+  },
+  async getActivityById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+    const activity: Activity | null= await ActivityModel.findById(id).lean();
+    handleSuccess(res, activity);
   }
 }
 
