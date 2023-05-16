@@ -30,7 +30,7 @@ const mailOptions = (email: string, token: string) => {
     html: `
       <p>親愛的 musitix 會員您好</p>
       <p>
-        您收到這封郵件是因為我們收到了您重設密碼的請求，請於 ${time} 前完成密碼異動。
+        您收到這封郵件是因為我們收到了您重設密碼的請求，請於 ${time} 前完成修改密碼。
       </p>
       <p>若您確定要重設密碼，請點擊以下連結：</p>
       <a
