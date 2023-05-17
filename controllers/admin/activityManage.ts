@@ -148,8 +148,20 @@ const activityManage = {
       } else {
         appError(404, "Activity not found", next);
       }
-  }
+  },
+  // TODO - 入場 Qrcode
+  async getActivityQrcode(req: Request, res: Response, next: NextFunction) {
+    const { orderId } = req.params;
+    // const data = await UserOrders.findOne({
+    //   orderNumber: orderId
+    // })
 
+    // if(!data) {
+    //   return next(appError(400, '查無此訂單', next));
+    // }
+
+    // handleSuccess(res, data)
+  }
 }
 
 export default activityManage;
