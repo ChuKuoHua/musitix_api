@@ -5,6 +5,7 @@ export interface ActivityBase {
   title: string;
   sponsorName: string;
   location: string;
+  address: string;
   mapUrl: string;
   startDate: Date;
   endDate: Date;
@@ -154,6 +155,11 @@ const activitySchema: Schema<Activity> = new mongoose.Schema({
     type: String,
     required: [true, '活動地點必填'],
     maxlength: [nameMaxLength, `活動地點超過最大長度限制: ${nameMaxLength}`],
+    trim: true
+  },
+  address: {
+    type: String,
+    required: [true, '活動地址必填'],
     trim: true
   },
   mapUrl: {

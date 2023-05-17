@@ -113,6 +113,7 @@ const activity = {
       title: activity.title,
       sponsorName: activity.sponsorName,
       location: activity.location,
+      address: activity.address,
       schedule: schedule,
     };
 
