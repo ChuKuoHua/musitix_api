@@ -14,7 +14,7 @@ function genDataChain(order: any) {
 }
 
 // 此加密主要是提供交易內容給予藍新金流
-function mpgAesEncrypt(TradeInfo: any) {
+function createMpgAesEncrypt(TradeInfo: any) {
   const encrypt = crypto.createCipheriv('aes256', HASHKEY, HASHIV);
   const enc = encrypt.update(genDataChain(TradeInfo), 'utf8', 'hex');
   return enc + encrypt.final('hex');
@@ -23,7 +23,7 @@ function mpgAesEncrypt(TradeInfo: any) {
 // 對應文件 P17：使用 sha256 加密
 // 使用 HASH 再次 SHA 加密字串，作為驗證使用
 // $hashs="HashKey=".$key."&".$edata1."&HashIV=".$iv;
-function mpgShaEncrypt(aesEncrypt: string) {
+function createMpgShaEncrypt(aesEncrypt: string) {
   const sha = crypto.createHash('sha256');
   const plainText = `HashKey=${HASHKEY}&${aesEncrypt}&HashIV=${HASHIV}`;
 
@@ -31,7 +31,7 @@ function mpgShaEncrypt(aesEncrypt: string) {
 }
 
 // 將 aes 解密
-function mpgAesDecrypt(TradeInfo: string) {
+function createMpgAesDecrypt(TradeInfo: string) {
   const decrypt = crypto.createDecipheriv('aes256', HASHKEY, HASHIV);
   decrypt.setAutoPadding(false);
   const text = decrypt.update(TradeInfo, 'hex', 'utf8');
@@ -41,7 +41,7 @@ function mpgAesDecrypt(TradeInfo: string) {
 }
 
 export {
-  mpgAesEncrypt,
-  mpgShaEncrypt,
-  mpgAesDecrypt
+  createMpgAesEncrypt,
+  createMpgShaEncrypt,
+  createMpgAesDecrypt
 }
