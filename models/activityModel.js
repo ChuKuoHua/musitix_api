@@ -112,6 +112,11 @@ const activitySchema = new mongoose_1.default.Schema({
         maxlength: [nameMaxLength, `活動地點超過最大長度限制: ${nameMaxLength}`],
         trim: true
     },
+    address: {
+        type: String,
+        required: [true, '活動地址必填'],
+        trim: true
+    },
     mapUrl: {
         type: String,
         required: [true, '地圖url必填'],

@@ -47,13 +47,13 @@ const activityManage = {
     createActivity(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             if (req.body) {
-                const { title, sponsorName, location, mapUrl, startDate, endDate, mainImageUrl, HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate } = req.body;
+                const { title, sponsorName, location, address, mapUrl, startDate, endDate, mainImageUrl, HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate } = req.body;
                 const status = activityModel_1.ActivityStatus.Unpublished;
                 const priceList = schedules.flatMap(schedule => schedule.ticketCategories.map(ticketCategory => ticketCategory.price));
                 const minPrice = Math.min(...priceList);
                 const maxPrice = Math.max(...priceList);
                 const activity = {
-                    title, sponsorName, location, mapUrl, startDate, endDate, mainImageUrl,
+                    title, sponsorName, location, address, mapUrl, startDate, endDate, mainImageUrl,
                     HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate,
                     status, minPrice, maxPrice
                 };
@@ -74,13 +74,13 @@ const activityManage = {
                 return (0, appError_1.default)(400, "只能編輯未上架之活動", next);
             }
             if (req.body) {
-                const { title, sponsorName, location, mapUrl, startDate, endDate, mainImageUrl, HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate } = req.body;
+                const { title, sponsorName, location, address, mapUrl, startDate, endDate, mainImageUrl, HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate } = req.body;
                 const status = activityModel_1.ActivityStatus.Unpublished;
                 const priceList = schedules.flatMap(schedule => schedule.ticketCategories.map(ticketCategory => ticketCategory.price));
                 const minPrice = Math.min(...priceList);
                 const maxPrice = Math.max(...priceList);
                 const activity = {
-                    title, sponsorName, location, mapUrl, startDate, endDate, mainImageUrl,
+                    title, sponsorName, location, address, mapUrl, startDate, endDate, mainImageUrl,
                     HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate,
                     status, minPrice, maxPrice
                 };
@@ -168,57 +168,12 @@ const activityManage = {
     getActivityById(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
-            try {
-                const activity = yield activityService.getActivityById(id);
-                if (activity) {
-                    (0, handleSuccess_1.default)(res, activity);
-                }
-                else {
-                    (0, appError_1.default)(404, "Activity not found", next);
-                }
+            const activity = yield activityService.getActivityById(id);
+            if (activity) {
+                (0, handleSuccess_1.default)(res, activity);
             }
-            catch (error) {
-                (0, appError_1.default)(500, "Internal Server Error", next);
-            }
-        });
-    },
-    getPublishedActivities(req, res, next) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const activities = yield activityModel_1.default.find().lean();
-                const hotActivities = activities.map(activity => ({
-                    title: activity.title,
-                    sponsorName: activity.sponsorName,
-                    startDate: activity.startDate,
-                    endDate: activity.endDate,
-                    minPrice: activity.minPrice,
-                    maxPrice: activity.maxPrice,
-                    mainImageUrl: activity.mainImageUrl,
-                    ticketCount: activity.schedules.reduce((total, schedule) => {
-                        return total + schedule.ticketCategories.reduce((sum, category) => sum + category.totalQuantity, 0);
-                    }, 0)
-                }));
-                const upcomingActivities = activities.filter(activity => {
-                    const saleStartDate = new Date(activity.saleStartDate);
-                    const sevenDaysFromNow = new Date();
-                    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-                    return saleStartDate <= sevenDaysFromNow;
-                });
-                const recentActivities = activities.filter(activity => {
-                    const startDate = new Date(activity.startDate);
-                    const sevenDaysAgo = new Date();
-                    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-                    return startDate <= sevenDaysAgo;
-                });
-                const response = {
-                    hotActivities,
-                    upcomingActivities,
-                    recentActivities
-                };
-                (0, handleSuccess_1.default)(res, response);
-            }
-            catch (error) {
-                return (0, appError_1.default)(500, "Failed to retrieve activities", next);
+            else {
+                (0, appError_1.default)(404, "Activity not found", next);
             }
         });
     }
