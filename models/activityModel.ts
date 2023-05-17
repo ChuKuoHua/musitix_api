@@ -39,6 +39,7 @@ export enum ActivityStatus {
 
 // 活動場次
 interface ActivitySchedule {
+  _id: mongoose.Schema.Types.ObjectId;
   scheduleName: string;
   ticketCategories: TicketCategory[];
 
@@ -50,6 +51,7 @@ interface ActivitySchedule {
 
 // 票種
 interface TicketCategory {
+  _id: mongoose.Schema.Types.ObjectId;
   categoryName: string;
   price: number;
   totalQuantity: number;

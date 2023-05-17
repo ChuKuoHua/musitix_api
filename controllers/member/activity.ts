@@ -98,6 +98,26 @@ const activity = {
     const activity: Activity | null = await ActivityModel.findById(id).lean();
     handleSuccess(res, activity);
   },
+  async getScheduleInfoById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { scheduleId } = req.params;
+    const activity = await ActivityModel.findOne({ schedules: { $elemMatch: { _id: scheduleId } } });
+
+    if (!activity) {
+      return appError(400, '查無此場次id', next);
+    }
+
+    const schedule = activity?.schedules.find((schedule) => schedule._id.toString() === scheduleId);
+
+    const result = {
+      activityId: activity._id,
+      title: activity.title,
+      sponsorName: activity.sponsorName,
+      location: activity.location,
+      schedule: schedule,
+    };
+
+    handleSuccess(res, result);
+  },
   async bookingActivity(req: Request, res: Response, next: NextFunction): Promise<void> {
 
 
