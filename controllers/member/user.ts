@@ -21,9 +21,8 @@ const user = {
   // NOTE 登入
   async login(req: AuthRequest, res: Response, next: NextFunction) {
     const { email, password } = req.body;
-    console.log(email)
     if (!email || !password) {
-      return next(appError(400, '帳號或密碼錯誤', next));
+      return appError(400, '帳號或密碼錯誤', next);
     }
     const user = await User.findOne(
       {
@@ -33,12 +32,12 @@ const user = {
       },
     ).select('+password');
     if(!user) {
-      return next(appError( 401, '無此會員或已停用', next));
+      return appError(401, '無此會員或已停用', next);
     }
 
     const auth = await bcrypt.compare(password, user.password);
     if(!auth){
-      return next(appError(400, '密碼錯誤', next));
+      return appError(400, '密碼錯誤', next);
     }
     generateSendJWT(user, 200, res);
   },
@@ -49,7 +48,7 @@ const user = {
     const errorMsg = checkRegister(req)
 
     if(errorMsg.length > 0) {
-      return next(appError(400, errorMsg, next));
+      return appError(400, errorMsg, next);
     }
     // 檢查暱稱是否已使用
     const userCheck = await User.findOne({
@@ -57,7 +56,7 @@ const user = {
     })
 
     if(userCheck !== null) {
-      return next(appError(400, "此暱稱已被使用", next));
+      return appError(400, "此暱稱已被使用", next);
     }
 
     try {
@@ -73,9 +72,9 @@ const user = {
     } catch (error) {
       // 不打資料庫，使用 mongoose 回傳的錯誤檢查  
       if(error && (error as HTTPError).code === 11000) {
-        return next(appError(400, '此 Email 已使用', next));
+        return appError(400, '此 Email 已使用', next);
       } else {
-        return next(appError(400, error, next));
+        return appError(400, error, next);
       }
     }
   },
@@ -106,7 +105,7 @@ const user = {
     const { username, picture } = req.body;
     const updateData = {} as Profiles;
     if(!username) {
-      return next(appError("400", '暱稱不得為空值', next));
+      return appError("400", '暱稱不得為空值', next);
     }
     // 判斷是否有上傳圖片
     if(picture) {
@@ -148,7 +147,7 @@ const user = {
   
     // 如果上傳過程中發生錯誤，會觸發 error 事件
     blobStream.on('error', (err: Error) => {
-      return next(appError("500", '上傳失敗', next));
+      return appError("500", '上傳失敗', next);
     });
   
     // 將檔案的 buffer 寫入 blobStream
@@ -166,13 +165,13 @@ const user = {
     if(user) {
       const auth = await bcrypt.compare(password, user.password);
       if(!auth){
-        return next(appError(400, '原密碼不正確', next));
+        return appError(400, '原密碼不正確', next);
       }
       if(!newPassword) {
-        return next(appError(400, '請輸入新密碼', next));
+        return appError(400, '請輸入新密碼', next);
       }
       if(password === newPassword) {
-        return next(appError(400, '新密碼不可與原密碼相同', next));
+        return appError(400, '新密碼不可與原密碼相同', next);
       }
       const errorMsg = []
       // 密碼檢查
@@ -182,7 +181,7 @@ const user = {
       }
   
       if(errorMsg.length > 0) {
-        return next(appError(400, errorMsg, next));
+        return appError(400, errorMsg, next);
       }
       newPassword = await bcrypt.hash(newPassword, 12);
       
@@ -205,7 +204,7 @@ const user = {
     );
 
     if(!user) {
-      return next(appError("400","無此會員信箱",next));
+      return appError("400","無此會員信箱",next);
     }
     // 建立會員 token
     const secretKey: string = process.env.JWT_SECRET ?? ''
@@ -220,9 +219,7 @@ const user = {
     // email 寄信
     transporter.sendMail(options, (error, info) => {
       if(error){
-        console.log(error);
-        
-        return next(appError(500, error, next));
+        return appError(500, error, next);
       }
       handleSuccess(res, '寄信成功');
     })
@@ -239,7 +236,7 @@ const user = {
     );
     if(user) {
       if(!newPassword) {
-        return next(appError(400, '請輸入新密碼', next));
+        return appError(400, '請輸入新密碼', next);
       }
       const errorMsg = []
       // 密碼檢查
@@ -249,7 +246,7 @@ const user = {
       }
   
       if(errorMsg.length > 0) {
-        return next(appError(400, errorMsg, next));
+        return appError(400, errorMsg, next);
       }
       newPassword = await bcrypt.hash(newPassword, 12);
 
@@ -262,7 +259,7 @@ const user = {
 
       handleSuccess(res, '密碼已修改');
     } else {
-      return next(appError(400, '查無此會員', next));
+      return appError(400, '查無此會員', next);
     }
   },
   // 取得預填資料
