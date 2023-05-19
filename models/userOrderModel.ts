@@ -21,6 +21,7 @@ interface UserOrder {
   memo: string;
   ticketList: Ticket[];
   activityId?: string;
+  userId?: string;
 }
 
 export interface Ticket {
@@ -34,7 +35,7 @@ export interface Ticket {
 
 
 enum TicketStatus {
-  Unknown = 0,
+  Failed = 0, // 付款失敗
   ReadyToUse = 1, // 可使用
   PendingPayment = 2, // 待付款
   Used = 3, // 已使用
@@ -51,7 +52,7 @@ const ticketSchema: Schema<Ticket> = new Schema({
   ticketNumber: { type: String, required: true },
   ticketStatus: {
     type: Number,
-    default: TicketStatus.Unknown,
+    default: TicketStatus.PendingPayment,
     enum: TicketStatus, required: true
   },
   qrCode: { type: String, required: true }
@@ -69,7 +70,8 @@ const UserOrderSchema: Schema = new Schema({
   orderCreateDate: { type: Date, default: Date.now },
   memo: { type: String },
   ticketList: { type: [ticketSchema], required: true },
-  activityId: { type: String }
+  activityId: { type: String },
+  userId: { type: String }
 });
 
 const UserOrderModel = mongoose.model<UserOrder>('userorder', UserOrderSchema);

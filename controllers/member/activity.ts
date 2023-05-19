@@ -5,6 +5,8 @@ import handleSuccess from '../../service/handleSuccess';
 import appError from '../../service/appError';
 import { TicketStatus, OrderStatus, Ticket, UserOrderModel } from '../../models/userOrderModel';
 import { generateOrderNumber, generateQRCode } from '../../service/orderService';
+import User from '../../models/users';
+import { AuthRequest } from '../../models/other';
 const activity = {
   async getPublishedActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
     const activities: Activity[] = await ActivityModel.find().lean();
@@ -120,7 +122,7 @@ const activity = {
 
     handleSuccess(res, result);
   },
-  async bookingActivity(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async bookingActivity(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
     const {
       ticketList,
@@ -138,7 +140,7 @@ const activity = {
 
     // 找到符合條件的 UserOrder
     let userOrder = await UserOrderModel.findOne({ buyer, cellPhone, email });
-
+    const userId = req.user.id;
     // 如果 UserOrder 不存在，則新增 UserOrder
     if (!userOrder) {
       const orderNumber = await generateOrderNumber();
@@ -153,6 +155,7 @@ const activity = {
         orderCreateDate: new Date(),
         ticketList: [],
         activityId: activity._id,
+        userId: userId
       });
       await newUserOrder.save();
 
