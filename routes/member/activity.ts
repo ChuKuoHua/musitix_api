@@ -15,6 +15,9 @@ router.get('/search', handleErrorAsync(activityController.searchActivities));
 //活動詳細介紹
 router.get('/:id', handleErrorAsync(activityController.getActivityById));
 
+// 根據場次id取得相關資訊
+router.get('/schedule/:scheduleId', handleErrorAsync(activityController.getScheduleInfoById));
+
 //送出訂票資訊
 //router.post('/:id/booking', isAuth, handleErrorAsync(activityController.bookingActivity));
 

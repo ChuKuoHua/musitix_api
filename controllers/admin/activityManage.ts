@@ -15,7 +15,7 @@ const activityManage = {
 
   async createActivity(req: Request<any, any, CreateActivityCommand>, res: Response, next: NextFunction) {
     if (req.body) {
-      const { title, sponsorName, location, mapUrl, startDate, endDate, mainImageUrl,
+      const { title, sponsorName, location, address, mapUrl, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate } = req.body;
       const status: ActivityStatus = ActivityStatus.Unpublished;
 
@@ -24,7 +24,7 @@ const activityManage = {
       const maxPrice = Math.max(...priceList);
 
       const activity: Activity = {
-        title, sponsorName, location, mapUrl, startDate, endDate, mainImageUrl,
+        title, sponsorName, location, address, mapUrl, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate,
         status, minPrice, maxPrice
       }
@@ -46,7 +46,7 @@ const activityManage = {
     }
 
     if (req.body) {
-      const { title, sponsorName, location, mapUrl, startDate, endDate, mainImageUrl,
+      const { title, sponsorName, location, address, mapUrl, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate } = req.body;
 
       const status: ActivityStatus = ActivityStatus.Unpublished;
@@ -56,7 +56,7 @@ const activityManage = {
       const maxPrice = Math.max(...priceList);
 
       const activity: Activity = {
-        title, sponsorName, location, mapUrl, startDate, endDate, mainImageUrl,
+        title, sponsorName, location, address, mapUrl, startDate, endDate, mainImageUrl,
         HtmlContent, HtmlNotice, schedules, saleStartDate, saleEndDate,
         status, minPrice, maxPrice
       }
@@ -142,26 +142,13 @@ const activityManage = {
   },
   async getActivityById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
-      const activity = await activityService.getActivityById(id);
-      if (activity) {
-        handleSuccess(res, activity)
-      } else {
-        appError(404, "Activity not found", next);
-      }
+    const activity = await activityService.getActivityById(id);
+    if (activity) {
+      handleSuccess(res, activity)
+    } else {
+      appError(404, "Activity not found", next);
+    }
   },
-  // TODO - 入場 Qrcode
-  async getActivityQrcode(req: Request, res: Response, next: NextFunction) {
-    const { orderId } = req.params;
-    // const data = await UserOrders.findOne({
-    //   orderNumber: orderId
-    // })
-
-    // if(!data) {
-    //   return next(appError(400, '查無此訂單', next));
-    // }
-
-    // handleSuccess(res, data)
-  }
 }
 
 export default activityManage;
