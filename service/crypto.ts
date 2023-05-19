@@ -1,16 +1,33 @@
 import crypto from 'crypto';
 
-const { HASHKEY, HASHIV, MerchantID, Version, RespondType }: any = process.env;
+const {
+  HASHKEY,
+  HASHIV,
+  MerchantID,
+  Version,
+  RespondType,
+  NotifyURL,
+  ReturnURL,
+  ClientBackURL }: any = process.env;
 
 // 字串組合
 function genDataChain(order: any) {
-  return `MerchantID=${MerchantID}&RespondType=${RespondType}&TimeStamp=${
-    order.TimeStamp
-  }&Version=${Version}&MerchantOrderNo=${order.MerchantOrderNo}&Amt=${
-    order.Amt
-  }&ItemDesc=${encodeURIComponent(order.ItemDesc)}&Email=${encodeURIComponent(
-    order.Email,
-  )}`;
+  // 付款期限
+  // 如果沒給，藍新預設為 7 天
+  const ExpireDate = order?.ExpireDate
+
+  return `MerchantID=${MerchantID}`
+    + `&RespondType=${RespondType}`
+    + `&TimeStamp=${order.TimeStamp}`
+    + `&Version=${Version}`
+    + `&MerchantOrderNo=${order.MerchantOrderNo}`
+    + `&Amt=${order.Amt}`
+    + `&ItemDesc=${encodeURIComponent(order.ItemDesc)}`
+    + `&Email=${encodeURIComponent(order.Email)}`
+    + `&NotifyURL=${NotifyURL}`
+    + `&ReturnURL=${ReturnURL}`
+    + `&ClientBackURL=${ClientBackURL}`
+    + `&ExpireDate=${ExpireDate ? ExpireDate : ''}`;
 }
 
 // 此加密主要是提供交易內容給予藍新金流
