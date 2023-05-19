@@ -27,5 +27,7 @@ router.patch('/reset_password', isForgotAuth, handleErrorAsync(userControllers.r
 router.get('/pre_filled_info', isAuth, handleErrorAsync(userControllers.getPreFilledInfo));
 // 修改預填資訊
 router.put('/pre_filled_info', isAuth, handleErrorAsync(userControllers.updatePreFilledInfo));
+// 修改預填資訊
+router.put('/order_info/:id', isAuth, handleErrorAsync(userControllers.updatePreFilledInfo));
 
 export default router;

@@ -15,6 +15,6 @@ router.get('/search', handleErrorAsync(activityController.searchActivities));
 router.get('/:id', handleErrorAsync(activityController.getActivityById));
 
 //送出訂票資訊
-//router.post('/:id/booking', isAuth, handleErrorAsync(activityController.bookingActivity));
+router.post('/:id/booking', isAuth, handleErrorAsync(activityController.bookingActivity));
 
 export default router;

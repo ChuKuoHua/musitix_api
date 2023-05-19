@@ -3,7 +3,8 @@ import { Request, Response, NextFunction } from 'express';
 import ActivityModel, { Activity, ActivityStatus } from '../../models/activityModel';
 import handleSuccess from '../../service/handleSuccess';
 import appError from '../../service/appError';
-
+import { TicketStatus, OrderStatus, Ticket, UserOrderModel } from '../../models/userOrderModel';
+import { generateOrderNumber, generateQRCode } from '../../service/orderService';
 const activity = {
   async getPublishedActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
     const activities: Activity[] = await ActivityModel.find().lean();
@@ -99,8 +100,106 @@ const activity = {
     handleSuccess(res, activity);
   },
   async bookingActivity(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+    const {
+      ticketList,
+      buyer,
+      cellPhone,
+      email,
+      address,
+      memo
+    } = req.body;
 
+    const activity = await ActivityModel.findById(id);
+    if (!activity) {
+      return next(appError(400, '活動不存在', next));
+    }
 
+    // 找到符合條件的 UserOrder
+    let userOrder = await UserOrderModel.findOne({ buyer, cellPhone, email });
+
+    // 如果 UserOrder 不存在，則新增 UserOrder
+    if (!userOrder) {
+      const orderNumber = await generateOrderNumber();
+      const newUserOrder = new UserOrderModel({
+        buyer,
+        cellPhone,
+        email,
+        address,
+        memo,
+        orderNumber,
+        orderStatus: OrderStatus.PendingPayment,
+        orderCreateDate: new Date(),
+        ticketList: [],
+        activityId: activity._id,
+      });
+      await newUserOrder.save();
+
+      // 更新 userOrder 變數
+      userOrder = newUserOrder;
+    }
+
+    // 檢查同一個 UserOrder 中的票數量是否超過四張
+    const existingTicketCount = userOrder.ticketList.reduce((count, ticket) => {
+      if (
+        ticket.ticketStatus === TicketStatus.ReadyToUse ||
+        ticket.ticketStatus === TicketStatus.PendingPayment
+      ) {
+        return count + 1;
+      }
+      return count;
+    }, 0);
+
+    let totalHeadCount = 0;
+    for (const ticket of ticketList) {
+      totalHeadCount += ticket.headCount;
+    }
+    for (const ticket of ticketList) {
+      const { id: ticketId, headCount } = ticket;
+
+      // 根據 ticketList 中的 ID 查找對應的 ticketCategory
+      const ticketCategory = activity.schedules
+        .flatMap(schedule => schedule.ticketCategories)
+        .find(category => (category as any)._id.toString() === ticketId);
+
+      if (!ticketCategory) {
+        return next(appError(400, '票名不存在', next));
+      }
+
+      // 減剩餘數量
+      if (ticketCategory.remainingQuantity === 0) {
+        return next(appError(400, '票已售完', next));
+      }
+
+      // 檢查票數量是否超過四張
+      if (existingTicketCount + totalHeadCount > 4) {
+        return next(appError(400, '每位用戶同一場活動最多只能訂購四張票', next));
+      }
+
+      // 創建新的 ticketList
+      for (let i = 0; i < headCount; i++) {
+        const orderNumber = userOrder.orderNumber;
+        const newUserTicket: Ticket = {
+          scheduleName: activity.schedules.find(schedule => schedule.scheduleName)?.scheduleName || '',
+          categoryName: ticketCategory.categoryName,
+          price: ticketCategory.price,
+          ticketNumber: `${orderNumber}-${userOrder.ticketList.length + 1}`, // 流水號
+          ticketStatus: TicketStatus.PendingPayment,
+          qrCode: await generateQRCode("ticketNumber"), // 生成QRCode
+        };
+
+        userOrder.ticketList.push(newUserTicket);
+      }
+
+      // 減少票的剩餘數量
+      ticketCategory.remainingQuantity -= headCount;
+    }
+
+    // 保存 UserOrder 和更新活動
+    await userOrder.save();
+    await activity.save();
+
+    handleSuccess(res, "");
   }
 }
 
