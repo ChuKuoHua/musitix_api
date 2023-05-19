@@ -13,6 +13,7 @@ import { GetSignedUrlConfig, GetSignedUrlCallback } from '@google-cloud/storage'
 import * as jwt from 'jsonwebtoken';
 import redisClient from '../../connections/connectRedis';
 import { transporter, mailOptions } from '../../service/email';
+import { UserOrder, UserOrderModel } from '../../models/userOrderModel';
 
 // 引入上傳圖片會用到的套件
 const bucket = firebaseAdmin.storage().bucket();
@@ -282,6 +283,12 @@ const user = {
 
     handleSuccess(res, '修改成功');
   },
+  // 取得訂單列表
+  async getOrderInfo(req: AuthRequest, res: Response, next: NextFunction) {
+    const { id } = req.params;
+    const userOrderInfo: UserOrder | null = await UserOrderModel.findById(id).lean();
+    handleSuccess(res, userOrderInfo);
+  }
 }
 
 export default user;
