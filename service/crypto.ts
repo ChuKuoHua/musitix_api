@@ -16,18 +16,18 @@ function genDataChain(order: any) {
   // 如果沒給，藍新預設為 7 天
   const ExpireDate = order?.ExpireDate
 
-  return `MerchantID=${MerchantID}`
-    + `&RespondType=${RespondType}`
-    + `&TimeStamp=${order.TimeStamp}`
-    + `&Version=${Version}`
-    + `&MerchantOrderNo=${order.MerchantOrderNo}`
-    + `&Amt=${order.Amt}`
-    + `&ItemDesc=${encodeURIComponent(order.ItemDesc)}`
-    + `&Email=${encodeURIComponent(order.Email)}`
-    + `&NotifyURL=${NotifyURL}`
-    + `&ReturnURL=${ReturnURL}`
-    + `&ClientBackURL=${ClientBackURL}`
-    + `&ExpireDate=${ExpireDate ? ExpireDate : ''}`;
+  return `MerchantID=${MerchantID}` // 商店代號
+    + `&RespondType=${RespondType}` // 回傳格式
+    + `&TimeStamp=${order.TimeStamp}` // 時間戳
+    + `&Version=${Version}` // 版本
+    + `&MerchantOrderNo=${order.MerchantOrderNo}` // 訂單編號
+    + `&Amt=${order.Amt}` // 金額 
+    + `&ItemDesc=${encodeURIComponent(order.ItemDesc)}` // 商品資訊 
+    + `&Email=${encodeURIComponent(order.Email)}` // 會員信箱
+    + `&NotifyURL=${NotifyURL}` // 處理付款回傳結果
+    + `&ReturnURL=${ReturnURL}` // 支付完成返回商店網址
+    + `&ClientBackURL=${ClientBackURL}` // 支付取消返回商店網址
+    + `&ExpireDate=${ExpireDate ? ExpireDate : ''}`; // 付款期限
 }
 
 // 此加密主要是提供交易內容給予藍新金流
