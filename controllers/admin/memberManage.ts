@@ -7,15 +7,16 @@ import User from '../../models/users';
 const memberManage = {
   // NOTE 會員資料
   async usersList(req: searchRequest, res: Response, next: NextFunction) {
+    const { timeSort, search, disabled, page, limit} = req.query;
     // asc 遞增(由小到大，由舊到新) createdAt ; 
     // desc 遞減(由大到小、由新到舊) "-createdAt"
-    const timeSort = req.query.timeSort === "asc" ? "createdAt" : "-createdAt"
-    const q = req.query.search !== undefined ? new RegExp(req.query.search)
+    const sortAt = timeSort === "asc" ? "createdAt" : "-createdAt"
+    const q = search !== undefined ? new RegExp(search)
     : '';
     // 用來判斷作廢或未作廢資料
-    const disabled = req.query.disabled ? req.query.disabled : false
-    const page: number = req.query.page ? Number(req.query.page) : 1
-    const limit: number = req.query.limit ? Number(req.query.limit) : 25
+    const isDisabled = disabled ? disabled : false
+    const pageNum: number = page ? Number(page) : 1
+    const limitNum: number = limit ? Number(limit) : 25
 
     const data = await User.find({
       // 模糊搜尋多欄位
@@ -27,9 +28,9 @@ const memberManage = {
       role: "user",
       isDisabled: disabled
     })
-    .sort(timeSort)
-    .skip((page - 1) * limit)
-    .limit(limit)
+    .sort(sortAt)
+    .skip((pageNum - 1) * limitNum)
+    .limit(limitNum)
 
     // 取得總數量
     const count = await User.countDocuments({
@@ -39,17 +40,17 @@ const memberManage = {
         { email: { $regex: q } },
       ],
       role: "user",
-      isDisabled: disabled
+      isDisabled: isDisabled
     });
 
     // 計算總頁數
-    const totalPages = Math.ceil(count / limit);
+    const totalPages = Math.ceil(count / limitNum);
 
     const json = {
       totalCount: count, // 總數量
       totalPages: totalPages, // 總頁數
-      currentPage: page, // 目前頁數
-      limit: limit, // 顯示數量
+      currentPage: pageNum, // 目前頁數
+      limit: limitNum, // 顯示數量
       users: data, // 會員資料
     }
 
@@ -65,7 +66,7 @@ const memberManage = {
     })
 
     if(!userCheck) {
-      return next(appError(400,"查無此 id",next));
+      return appError(400,"查無此 id",next);
     }
     
     await User.findByIdAndUpdate(userId, {
@@ -90,7 +91,7 @@ const memberManage = {
     })
 
     if(!userCheck) {
-      return next(appError(400,"查無此 id",next));
+      return appError(400,"查無此 id",next);
     }
     
     const data = await User.deleteOne({"_id": userId})
@@ -98,6 +99,35 @@ const memberManage = {
       handleSuccess(res, '此會員已停用')
     }
   },
+  // TODO 購票紀錄
+  async ticketRecord(req: Request, res: Response, next: NextFunction) {
+    const userId = req.params.id;
+    const { page, limit } = req.query;
+    const pageNum: number = page ? Number(page) : 1;
+    const limitNum: number = limit ? Number(limit) : 25;
+    // const data = await UserOrders.find({
+    //   id: userId
+    // }).skip((pageNum - 1) * limitNum)
+    // .limit(limitNum)
+
+    // 取得總數量
+    // const count = await User.countDocuments({
+    //   id: userId
+    // });
+
+    // 計算總頁數
+    // const totalPages = Math.ceil(count / limitNum);
+
+    // const json = {
+    //   totalCount: count, // 總數量
+    //   totalPages: totalPages, // 總頁數
+    //   currentPage: pageNum, // 目前頁數
+    //   limit: limitNum, // 顯示數量
+    //   orders: data, // 購票資料
+    // }
+
+    // handleSuccess(res, json);
+  }
 }
 
 export default memberManage;

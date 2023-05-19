@@ -20,7 +20,7 @@ const admin = {
   async login(req:AuthRequest, res: Response, next: NextFunction) {
     const { account, password } = req.body;
     if (!account || !password) {
-      return next(appError( 400,'帳號或密碼錯誤',next));
+      return appError( 400,'帳號或密碼錯誤',next);
     }
     const host = await Host.findOne(
       {
@@ -30,13 +30,13 @@ const admin = {
     ).select('+password');
 
     if(!host) {
-      return next(appError( 401,'無此主辦帳號',next));
+      return appError( 401,'無此主辦帳號',next);
     }
 
     const auth = await bcrypt.compare(password, host.password);
 
     if(!auth){
-      return next(appError(400,'您的密碼不正確',next));
+      return appError(400,'您的密碼不正確',next);
     }
 
     generateSendAdminJWT(host, 200, res);
@@ -51,12 +51,12 @@ const admin = {
       "email": email
     })
     if(adminCheck) {
-      return next(appError(400,"此 Email 已使用",next));
+      return appError(400,"此 Email 已使用",next);
     }
 
     // 內容不可為空
     if(!email||!account||!username||!password||!confirmPassword){
-      return next(appError(400, "欄位未填寫正確！", next));
+      return appError(400, "欄位未填寫正確！", next);
     }
     // 是否為 Email
     if(!validator.isEmail(email)){
@@ -74,7 +74,7 @@ const admin = {
     }
 
     if(errorMsg.length > 0) {
-      return next(appError(400, errorMsg, next));
+      return appError(400, errorMsg, next);
     }
     
     // 加密密碼
@@ -116,7 +116,7 @@ const admin = {
     const updateData = {} as Profiles;
     if(!username) {
       // errorMsg.push("暱稱不得為空值");
-      return next(appError("400", '暱稱不得為空值', next));
+      return appError("400", '暱稱不得為空值', next);
     }
     // 判斷是否有上傳圖片
     if(picture) {
@@ -133,7 +133,7 @@ const admin = {
   // NOTE 上傳主辦圖片
   async uploadUserImage (req: imageRequest, res:Response, next: NextFunction) {
     if(!req.files || !req.files.length) {
-      return next(appError(400, "尚未上傳檔案", next));
+      return appError(400, "尚未上傳檔案", next);
     }
     // 取得上傳的檔案資訊列表裡面的第一個檔案
     const file = req.files[0];
@@ -158,7 +158,7 @@ const admin = {
 
     // 如果上傳過程中發生錯誤，會觸發 error 事件
     blobStream.on('error', (err: Error) => {
-      return next(appError("500", '上傳失敗', next));
+      return appError("500", '上傳失敗', next);
     });
 
     // 將檔案的 buffer 寫入 blobStream
@@ -176,13 +176,13 @@ const admin = {
     if(host) {
       const auth = await bcrypt.compare(password, host.password);
       if(!auth){
-        return next(appError(400, '原密碼不正確', next));
+        return appError(400, '原密碼不正確', next);
       }
       if(!newPassword) {
-        return next(appError(400, '請輸入新密碼', next));
+        return appError(400, '請輸入新密碼', next);
       }
       if(password === newPassword) {
-        return next(appError(400, '新密碼不可與原密碼相同', next));
+        return appError(400, '新密碼不可與原密碼相同', next);
       }
       const errorMsg = []
       // 密碼檢查
@@ -192,7 +192,7 @@ const admin = {
       }
 
       if(errorMsg.length > 0) {
-        return next(appError(400, errorMsg, next));
+        return appError(400, errorMsg, next);
       }
       newPassword = await bcrypt.hash(newPassword, 12);
       
