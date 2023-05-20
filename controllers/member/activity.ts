@@ -10,6 +10,11 @@ import { AuthRequest } from '../../models/other';
 const activity = {
   async getPublishedActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
     const activities: Activity[] = await ActivityModel.find().lean();
+    const oneMonthBefore = new Date();
+    oneMonthBefore.setMonth(oneMonthBefore.getMonth() - 1);
+    const currentDate = new Date();
+    const oneMonthFromNow = new Date();
+    oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
 
     const hotActivities = activities.map(activity => ({
       id: (activity as any)._id.toString(),
@@ -27,9 +32,7 @@ const activity = {
 
     const upcomingActivities = activities.filter(activity => {
       const saleStartDate = new Date(activity.saleStartDate);
-      const sevenDaysFromNow = new Date();
-      sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-      return saleStartDate <= sevenDaysFromNow;
+       return currentDate <= saleStartDate && saleStartDate <= oneMonthFromNow;
     }).map(activity => ({
       id: (activity as any)._id.toString(),
       title: activity.title,
@@ -41,12 +44,10 @@ const activity = {
       mainImageUrl: activity.mainImageUrl,
       saleStartDate: activity.saleStartDate
     }));
-
+    
     const recentActivities = activities.filter(activity => {
       const startDate = new Date(activity.startDate);
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      return startDate <= sevenDaysAgo;
+      return startDate >= currentDate && startDate <= oneMonthFromNow;
     }).map(activity => ({
       id: (activity as any)._id.toString(),
       title: activity.title,
