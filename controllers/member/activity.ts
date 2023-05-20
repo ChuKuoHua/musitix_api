@@ -137,14 +137,13 @@ const activity = {
       address,
       memo
     } = req.body;
-
     const activity = await ActivityModel.findById(id);
     if (!activity) {
       return next(appError(400, '活動不存在', next));
     }
 
     // 找到符合條件的 UserOrder
-    let userOrder = await UserOrderModel.findOne({ buyer, cellPhone, email });
+    let userOrder = await UserOrderModel.findOne({ buyer, cellPhone, email, activityId: id});
     const userId = req.user.id;
     // 如果 UserOrder 不存在，則新增 UserOrder
     if (!userOrder) {
