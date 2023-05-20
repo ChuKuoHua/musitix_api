@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import appError from '../../service/appError';
 import handleSuccess from '../../service/handleSuccess';
 import { createMpgShaEncrypt, createMpgAesDecrypt } from '../../service/crypto';
+import { OrderStatus, UserOrderModel } from '../../models/userOrderModel';
 
 const newebpay = {
   // NOTE 交易成功導回頁面
@@ -29,22 +30,30 @@ const newebpay = {
 
     // 取得交易內容，並查詢本地端資料庫是否有相符的訂單
     const orderId = data?.Result?.MerchantOrderNo
-    // const orderData = await userOrders.findOne(
-    //   {
-    //     orderNumber: orderId
-    //   },
-    // )
+    const orderData = await UserOrderModel.findOne(
+      {
+        orderNumber: orderId
+      },
+    )
 
-    // if(!orderData) {
-    //   return appError(500, '查無此訂單', next);
-    // }
-
-    // await userOrders.findByIdAndUpdate(orderId,
-    //   {
-    //     orderStatus: 1
-    //   }
-    // );
-    // handleSuccess(res, `付款完成，訂單：${orderId}`);
+    if(!orderData) {
+      return appError(500, '查無此訂單', next);
+    }
+    if(response.Status === 'SUCCESS') {
+      await UserOrderModel.findByIdAndUpdate(orderId,
+        {
+          orderStatus: OrderStatus.ReadyToUse
+        }
+      );
+      handleSuccess(res, `付款完成，訂單：${orderId}`);
+    } else {
+      await UserOrderModel.findByIdAndUpdate(orderId,
+        {
+          orderStatus: OrderStatus.Unknown
+        }
+      );
+      handleSuccess(res, `付款失敗，訂單：${orderId}`);
+    }
   },
 }
 
