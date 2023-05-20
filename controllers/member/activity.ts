@@ -99,7 +99,12 @@ const activity = {
   async getActivityById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
     const activity: Activity | null = await ActivityModel.findById(id).lean();
-    handleSuccess(res, activity);
+    const { _id, ...activityData } = activity as any;
+    const response = {
+      id: _id.toString(),
+      ...activityData
+    }
+    handleSuccess(res, response);
   },
   async getScheduleInfoById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { scheduleId } = req.params;
