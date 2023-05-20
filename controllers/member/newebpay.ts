@@ -2,20 +2,21 @@ import { Request, Response, NextFunction } from 'express';
 import appError from '../../service/appError';
 import handleSuccess from '../../service/handleSuccess';
 import { createMpgShaEncrypt, createMpgAesDecrypt } from '../../service/crypto';
-import { OrderStatus, UserOrderModel } from '../../models/userOrderModel';
+import { TicketStatus, UserOrderModel } from '../../models/userOrderModel';
+import dayjs from 'dayjs';
 
 const newebpay = {
   // NOTE 交易成功導回頁面
-  async newebpayReturn(req: Request, res: Response, next: NextFunction) {
-    const response = req.body;
-    const data = createMpgAesDecrypt(response.TradeInfo);
+  // async newebpayReturn(req: Request, res: Response, next: NextFunction) {
+  //   const response = req.body;
+  //   const data = createMpgAesDecrypt(response.TradeInfo);
     
-    if(data.Status === 'SUCCESS') {
-      res.redirect('https://musitix-south3.onrender.com/#/');
-    } else {
-      res.redirect('https://musitix-south3.onrender.com/#/');
-    }
-  },
+  //   if(response.Status === 'SUCCESS') {
+  //     res.redirect('https://musitix-south3.onrender.com/#/');
+  //   } else {
+  //     res.redirect('https://musitix-south3.onrender.com/#/');
+  //   }
+  // },
   // 回傳狀態後，修改訂單狀態
   async newebpayNotify(req: Request, res: Response, next: NextFunction) {
     const response = req.body;
@@ -29,7 +30,17 @@ const newebpay = {
     const data = createMpgAesDecrypt(response.TradeInfo);
 
     // 取得交易內容，並查詢本地端資料庫是否有相符的訂單
-    const orderId = data?.Result?.MerchantOrderNo
+    const orderId = data?.Result?.MerchantOrderNo;
+    const payTime = data?.Result?.PayTime;
+    const inputFormat = 'YYYY-MM-DDTHH:mm:ss';
+    const outputFormat = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
+
+    // 將日期字串轉換為指定格式的日期物件
+    const dateObj = dayjs(payTime, inputFormat);
+
+    // 將日期物件轉換為指定格式的字串
+    const newPayTime = dateObj.format(outputFormat);
+
     const orderData = await UserOrderModel.findOne(
       {
         orderNumber: orderId
@@ -42,14 +53,18 @@ const newebpay = {
     if(response.Status === 'SUCCESS') {
       await UserOrderModel.findByIdAndUpdate(orderId,
         {
-          orderStatus: OrderStatus.ReadyToUse
+          orderStatus: TicketStatus.ReadyToUse,
+          $set: { 'ticketList.$[].ticketStatus': TicketStatus.ReadyToUse },
+          payTime: newPayTime
         }
       );
       handleSuccess(res, `付款完成，訂單：${orderId}`);
     } else {
       await UserOrderModel.findByIdAndUpdate(orderId,
         {
-          orderStatus: OrderStatus.Unknown
+          orderStatus: TicketStatus.Failed,
+          $set: { 'ticketList.$[].ticketStatus': TicketStatus.Failed },
+          payTime: newPayTime
         }
       );
       handleSuccess(res, `付款失敗，訂單：${orderId}`);

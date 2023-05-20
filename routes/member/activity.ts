@@ -24,6 +24,6 @@ router.post('/:id/booking', isAuth, handleErrorAsync(activityController.bookingA
 // TODO 藍新金流導回頁面
 // router.post('/spgateway_return', handleErrorAsync(newebpay.newebpayReturn));
 // TODO 交易成功後，處理訂單狀態
-// router.post('/spgateway_notify', handleErrorAsync(newebpay.newebpayNotify));
+router.post('/spgateway_notify', handleErrorAsync(newebpay.newebpayNotify));
 
 export default router;

@@ -3,6 +3,7 @@ import { searchRequest } from '../../models/other';
 import appError from '../../service/appError';
 import handleSuccess from '../../service/handleSuccess';
 import User from '../../models/users';
+import { UserOrderModel } from '../../models/userOrderModel';
 
 const memberManage = {
   // NOTE 會員資料
@@ -105,28 +106,32 @@ const memberManage = {
     const { page, limit } = req.query;
     const pageNum: number = page ? Number(page) : 1;
     const limitNum: number = limit ? Number(limit) : 25;
-    // const data = await UserOrders.find({
-    //   id: userId
-    // }).skip((pageNum - 1) * limitNum)
-    // .limit(limitNum)
+    const data = await UserOrderModel.find({
+      userId: userId
+    }, 'buyer activityId cellPhone orderNumber orderStatus memo  ticketList.scheduleName ticketList.categoryName ticketList.price ticketList.ticketNumber ticketList.ticketStatus'
+    ).populate({
+      path: 'activityId',
+      select: 'title startDate'
+    }).skip((pageNum - 1) * limitNum)
+    .limit(limitNum)
 
     // 取得總數量
-    // const count = await User.countDocuments({
-    //   id: userId
-    // });
+    const count = await UserOrderModel.countDocuments({
+      userId: userId
+    });
 
     // 計算總頁數
-    // const totalPages = Math.ceil(count / limitNum);
+    const totalPages = Math.ceil(count / limitNum);
 
-    // const json = {
-    //   totalCount: count, // 總數量
-    //   totalPages: totalPages, // 總頁數
-    //   currentPage: pageNum, // 目前頁數
-    //   limit: limitNum, // 顯示數量
-    //   orders: data, // 購票資料
-    // }
+    const json = {
+      totalCount: count, // 總數量
+      totalPages: totalPages, // 總頁數
+      currentPage: pageNum, // 目前頁數
+      limit: limitNum, // 顯示數量
+      orders: data, // 購票資料
+    }
 
-    // handleSuccess(res, json);
+    handleSuccess(res, json);
   }
 }
 

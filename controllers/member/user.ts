@@ -205,7 +205,7 @@ const user = {
     );
 
     if(!user) {
-      return appError("400","無此會員信箱",next);
+      return appError(400,"無此會員信箱",next);
     }
     // 建立會員 token
     const secretKey: string = process.env.JWT_SECRET ?? ''

@@ -22,6 +22,7 @@ interface UserOrder {
   ticketList: Ticket[];
   activityId?: string;
   userId?: string;
+  payTime?: Date;
 }
 
 export interface Ticket {
@@ -71,7 +72,8 @@ const UserOrderSchema: Schema = new Schema({
   memo: { type: String },
   ticketList: { type: [ticketSchema], required: true },
   activityId: { type: String },
-  userId: { type: String }
+  userId: { type: String },
+  payTime: { type: Date }
 });
 
 const UserOrderModel = mongoose.model<UserOrder>('userorder', UserOrderSchema);
