@@ -20,10 +20,23 @@ interface UserOrder {
   orderCreateDate: Date;
   memo: string;
   ticketList: Ticket[];
+  activityInfo: {
+    title: string;
+    sponsorName: string;
+    location: string;
+    address: string;
+    startDate: Date;
+    endDate: Date;
+    mainImageUrl: string;
+    totalAmount: number;
+    ticketTotalCount: number;
+  };
   activityId?: mongoose.Schema.Types.ObjectId;
   userId?: mongoose.Schema.Types.ObjectId;
   payTime?: Date;
 }
+
+
 
 export interface Ticket {
   scheduleName: string;
@@ -71,6 +84,17 @@ const UserOrderSchema: Schema = new Schema({
   orderCreateDate: { type: Date, default: Date.now },
   memo: { type: String },
   ticketList: { type: [ticketSchema], required: true },
+  activityInfo: {
+    title: { type: String},
+    sponsorName: { type: String},
+    location: { type: String},
+    address: { type: String},
+    startDate: { type: Date},
+    endDate: { type: Date},
+    mainImageUrl: { type: String},
+    totalAmount: { type: Number},
+    ticketTotalCount: { type: Number}
+  },
   activityId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'activities'
