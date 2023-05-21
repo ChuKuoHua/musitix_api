@@ -52,13 +52,13 @@ const user = {
       return appError(400, errorMsg, next);
     }
     // 檢查暱稱是否已使用
-    const userCheck = await User.findOne({
-      username: username
-    })
+    // const userCheck = await User.findOne({
+    //   username: username
+    // })
 
-    if(userCheck !== null) {
-      return appError(400, "此暱稱已被使用", next);
-    }
+    // if(userCheck !== null) {
+    //   return appError(400, "此暱稱已被使用", next);
+    // }
 
     try {
       // 加密密碼

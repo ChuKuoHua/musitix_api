@@ -18,14 +18,14 @@ function genDataChain(order: any) {
 
   return `MerchantID=${MerchantID}` // 商店代號
     + `&RespondType=${RespondType}` // 回傳格式
-    + `&TimeStamp=${order.TimeStamp}` // 時間戳
+    + `&TimeStamp=${order.TimeStamp}` // 時間戳 Unix 格式
     + `&Version=${Version}` // 版本
     + `&MerchantOrderNo=${order.MerchantOrderNo}` // 訂單編號
     + `&Amt=${order.Amt}` // 金額 
     + `&ItemDesc=${encodeURIComponent(order.ItemDesc)}` // 商品資訊 
     + `&Email=${encodeURIComponent(order.Email)}` // 會員信箱
     + `&NotifyURL=${NotifyURL}` // 處理付款回傳結果
-    + `&ReturnURL=${ReturnURL}` // 支付完成返回商店網址
+    // + `&ReturnURL=${ReturnURL}` // 支付完成返回商店網址
     + `&ClientBackURL=${ClientBackURL}` // 支付取消返回商店網址
     + `&ExpireDate=${ExpireDate ? ExpireDate : ''}`; // 付款期限
 }

@@ -20,8 +20,8 @@ interface UserOrder {
   orderCreateDate: Date;
   memo: string;
   ticketList: Ticket[];
-  activityId?: string;
-  userId?: string;
+  activityId?: mongoose.Schema.Types.ObjectId;
+  userId?: mongoose.Schema.Types.ObjectId;
   payTime?: Date;
 }
 
@@ -71,8 +71,14 @@ const UserOrderSchema: Schema = new Schema({
   orderCreateDate: { type: Date, default: Date.now },
   memo: { type: String },
   ticketList: { type: [ticketSchema], required: true },
-  activityId: { type: String },
-  userId: { type: String },
+  activityId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'activities'
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'user'
+  },
   payTime: { type: Date }
 });
 

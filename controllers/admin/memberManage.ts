@@ -4,6 +4,7 @@ import appError from '../../service/appError';
 import handleSuccess from '../../service/handleSuccess';
 import User from '../../models/users';
 import { UserOrderModel } from '../../models/userOrderModel';
+import ActivityModel from '../../models/activityModel';
 
 const memberManage = {
   // NOTE 會員資料
@@ -28,11 +29,10 @@ const memberManage = {
       ],
       role: "user",
       isDisabled: disabled
-    })
-    .sort(sortAt)
+    }).sort(sortAt)
     .skip((pageNum - 1) * limitNum)
     .limit(limitNum)
-
+    
     // 取得總數量
     const count = await User.countDocuments({
       $or: [
@@ -100,7 +100,7 @@ const memberManage = {
       handleSuccess(res, '此會員已停用')
     }
   },
-  // TODO 購票紀錄
+  // 購票紀錄
   async ticketRecord(req: Request, res: Response, next: NextFunction) {
     const userId = req.params.id;
     const { page, limit } = req.query;
@@ -113,7 +113,7 @@ const memberManage = {
       path: 'activityId',
       select: 'title startDate'
     }).skip((pageNum - 1) * limitNum)
-    .limit(limitNum)
+    .limit(limitNum);
 
     // 取得總數量
     const count = await UserOrderModel.countDocuments({
