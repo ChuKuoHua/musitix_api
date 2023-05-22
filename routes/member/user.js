@@ -31,4 +31,6 @@ router.patch('/reset_password', auth_1.isForgotAuth, (0, handleErrorAsync_1.defa
 router.get('/pre_filled_info', auth_1.isAuth, (0, handleErrorAsync_1.default)(user_1.default.getPreFilledInfo));
 // 修改預填資訊
 router.put('/pre_filled_info', auth_1.isAuth, (0, handleErrorAsync_1.default)(user_1.default.updatePreFilledInfo));
+// 取得訂單資訊
+router.get('/order_info/:id', auth_1.isAuth, (0, handleErrorAsync_1.default)(user_1.default.getOrderInfo));
 exports.default = router;

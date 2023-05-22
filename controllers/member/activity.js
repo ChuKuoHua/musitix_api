@@ -31,6 +31,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -38,10 +49,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const activityModel_1 = __importStar(require("../../models/activityModel"));
 const handleSuccess_1 = __importDefault(require("../../service/handleSuccess"));
 const appError_1 = __importDefault(require("../../service/appError"));
+const userOrderModel_1 = require("../../models/userOrderModel");
+const orderService_1 = require("../../service/orderService");
 const activity = {
     getPublishedActivities(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const activities = yield activityModel_1.default.find().lean();
+            const oneMonthBefore = new Date();
+            oneMonthBefore.setMonth(oneMonthBefore.getMonth() - 1);
+            const currentDate = new Date();
+            const oneMonthFromNow = new Date();
+            oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
             const hotActivities = activities.map(activity => ({
                 id: activity._id.toString(),
                 title: activity.title,
@@ -57,9 +75,7 @@ const activity = {
             }));
             const upcomingActivities = activities.filter(activity => {
                 const saleStartDate = new Date(activity.saleStartDate);
-                const sevenDaysFromNow = new Date();
-                sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-                return saleStartDate <= sevenDaysFromNow;
+                return currentDate <= saleStartDate && saleStartDate <= oneMonthFromNow;
             }).map(activity => ({
                 id: activity._id.toString(),
                 title: activity.title,
@@ -73,9 +89,7 @@ const activity = {
             }));
             const recentActivities = activities.filter(activity => {
                 const startDate = new Date(activity.startDate);
-                const sevenDaysAgo = new Date();
-                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-                return startDate <= sevenDaysAgo;
+                return startDate >= currentDate && startDate <= oneMonthFromNow;
             }).map(activity => ({
                 id: activity._id.toString(),
                 title: activity.title,
@@ -123,7 +137,9 @@ const activity = {
         return __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
             const activity = yield activityModel_1.default.findById(id).lean();
-            (0, handleSuccess_1.default)(res, activity);
+            const _a = activity, { _id } = _a, activityData = __rest(_a, ["_id"]);
+            const response = Object.assign({ id: _id.toString() }, activityData);
+            (0, handleSuccess_1.default)(res, response);
         });
     },
     getScheduleInfoById(req, res, next) {
@@ -146,7 +162,87 @@ const activity = {
         });
     },
     bookingActivity(req, res, next) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            const { ticketList, buyer, cellPhone, email, address, memo } = req.body;
+            if (!ticketList.length) {
+                return next((0, appError_1.default)(400, 'ticketList is invalid', next));
+            }
+            const activity = yield activityModel_1.default.findById(id);
+            if (!activity) {
+                return next((0, appError_1.default)(400, '活動不存在', next));
+            }
+            const userId = req.user.id;
+            const orderNumber = (0, orderService_1.generateOrderNumber)();
+            let totalAmount = 0;
+            let ticketTotalCount = 0;
+            const ticketCategories = activity.schedules.flatMap(schedule => schedule.ticketCategories);
+            // 檢查是否有錯誤
+            for (const ticket of ticketList) {
+                const { id: ticketId } = ticket;
+                // 根據 ticketList 中的 ID 查找對應的 ticketCategory
+                const ticketCategory = ticketCategories.find(category => category._id.toString() === ticketId);
+                if (!ticketCategory) {
+                    return next((0, appError_1.default)(400, '票名不存在', next));
+                }
+                if (ticket.headCount > ticketCategory.remainingQuantity) {
+                    return next((0, appError_1.default)(400, '票已售完', next));
+                }
+            }
+            // 確定沒問題再建立model
+            const newUserOrder = new userOrderModel_1.UserOrderModel({
+                buyer,
+                cellPhone,
+                email,
+                address,
+                memo,
+                orderNumber,
+                orderStatus: userOrderModel_1.OrderStatus.PendingPayment,
+                orderCreateDate: new Date(),
+                ticketList: [],
+                activityInfo: {
+                    title: activity.title,
+                    sponsorName: activity.sponsorName,
+                    location: activity.location,
+                    address: activity.address,
+                    startDate: activity.startDate,
+                    endDate: activity.endDate,
+                    mainImageUrl: activity.mainImageUrl,
+                    totalAmount: 0,
+                    ticketTotalCount: 0
+                },
+                activityId: activity._id,
+                userId: userId
+            });
+            for (const ticket of ticketList) {
+                const { id: ticketId, headCount } = ticket;
+                // 根據 ticketList 中的 ID 查找對應的 ticketCategory
+                const ticketCategory = ticketCategories.find(category => category._id.toString() === ticketId);
+                // 創建新的 ticketList
+                for (let i = 0; i < headCount; i++) {
+                    const orderNumber = newUserOrder.orderNumber;
+                    const newUserTicket = {
+                        scheduleName: ((_a = activity.schedules.find(schedule => schedule.scheduleName)) === null || _a === void 0 ? void 0 : _a.scheduleName) || '',
+                        categoryName: ticketCategory.categoryName,
+                        price: ticketCategory.price,
+                        ticketNumber: `${orderNumber}-${newUserOrder.ticketList.length + 1}`,
+                        ticketStatus: userOrderModel_1.TicketStatus.PendingPayment,
+                        qrCode: yield (0, orderService_1.generateQRCode)("ticketNumber"), // 生成QRCode
+                    };
+                    newUserOrder.ticketList.push(newUserTicket);
+                    totalAmount += ticketCategory.price;
+                    ticketTotalCount += 1;
+                }
+                // 減少票的剩餘數量
+                ticketCategory.remainingQuantity -= headCount;
+            }
+            newUserOrder.activityInfo.totalAmount = totalAmount; // 新增總金額
+            newUserOrder.activityInfo.ticketTotalCount = ticketTotalCount; // 新增總票數
+            // 保存 UserOrder 和更新活動
+            yield newUserOrder.save();
+            yield activity.save();
+            (0, handleSuccess_1.default)(res, "");
         });
     }
 };

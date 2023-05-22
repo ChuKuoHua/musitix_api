@@ -10,6 +10,8 @@ const memberManage_1 = __importDefault(require("../../controllers/admin/memberMa
 const router = express_1.default.Router();
 // 全部會員資料
 router.get('/users_list', admin_1.isAdmin, (0, handleErrorAsync_1.default)(memberManage_1.default.usersList));
+// TODO 會員購票紀錄
+router.get('/:id/ticket_record', admin_1.isAdmin, (0, handleErrorAsync_1.default)(memberManage_1.default.ticketRecord));
 // 會員停用/啟用
 router.delete('/invalid_user', admin_1.isAdmin, (0, handleErrorAsync_1.default)(memberManage_1.default.invalidUser));
 // 刪除會員(後端用)

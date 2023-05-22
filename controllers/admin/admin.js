@@ -30,18 +30,18 @@ const admin = {
         return __awaiter(this, void 0, void 0, function* () {
             const { account, password } = req.body;
             if (!account || !password) {
-                return next((0, appError_1.default)(400, '帳號或密碼錯誤', next));
+                return (0, appError_1.default)(400, '帳號或密碼錯誤', next);
             }
             const host = yield host_1.default.findOne({
                 account,
                 isDisabled: false, // false 啟用 true 停用
             }).select('+password');
             if (!host) {
-                return next((0, appError_1.default)(401, '無此主辦帳號', next));
+                return (0, appError_1.default)(401, '無此主辦帳號', next);
             }
             const auth = yield bcryptjs_1.default.compare(password, host.password);
             if (!auth) {
-                return next((0, appError_1.default)(400, '您的密碼不正確', next));
+                return (0, appError_1.default)(400, '您的密碼不正確', next);
             }
             (0, admin_1.generateSendAdminJWT)(host, 200, res);
         });
@@ -56,11 +56,11 @@ const admin = {
                 "email": email
             });
             if (adminCheck) {
-                return next((0, appError_1.default)(400, "此 Email 已使用", next));
+                return (0, appError_1.default)(400, "此 Email 已使用", next);
             }
             // 內容不可為空
             if (!email || !account || !username || !password || !confirmPassword) {
-                return next((0, appError_1.default)(400, "欄位未填寫正確！", next));
+                return (0, appError_1.default)(400, "欄位未填寫正確！", next);
             }
             // 是否為 Email
             if (!validator_1.default.isEmail(email)) {
@@ -76,7 +76,7 @@ const admin = {
                 errorMsg.push("密碼不一致");
             }
             if (errorMsg.length > 0) {
-                return next((0, appError_1.default)(400, errorMsg, next));
+                return (0, appError_1.default)(400, errorMsg, next);
             }
             // 加密密碼
             password = yield bcryptjs_1.default.hash(req.body.password, 12);
@@ -121,7 +121,7 @@ const admin = {
             const updateData = {};
             if (!username) {
                 // errorMsg.push("暱稱不得為空值");
-                return next((0, appError_1.default)("400", '暱稱不得為空值', next));
+                return (0, appError_1.default)("400", '暱稱不得為空值', next);
             }
             // 判斷是否有上傳圖片
             if (picture) {
@@ -138,7 +138,7 @@ const admin = {
     uploadUserImage(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!req.files || !req.files.length) {
-                return next((0, appError_1.default)(400, "尚未上傳檔案", next));
+                return (0, appError_1.default)(400, "尚未上傳檔案", next);
             }
             // 取得上傳的檔案資訊列表裡面的第一個檔案
             const file = req.files[0];
@@ -161,7 +161,7 @@ const admin = {
             });
             // 如果上傳過程中發生錯誤，會觸發 error 事件
             blobStream.on('error', (err) => {
-                return next((0, appError_1.default)("500", '上傳失敗', next));
+                return (0, appError_1.default)("500", '上傳失敗', next);
             });
             // 將檔案的 buffer 寫入 blobStream
             blobStream.end(file.buffer);
@@ -178,13 +178,13 @@ const admin = {
             if (host) {
                 const auth = yield bcryptjs_1.default.compare(password, host.password);
                 if (!auth) {
-                    return next((0, appError_1.default)(400, '原密碼不正確', next));
+                    return (0, appError_1.default)(400, '原密碼不正確', next);
                 }
                 if (!newPassword) {
-                    return next((0, appError_1.default)(400, '請輸入新密碼', next));
+                    return (0, appError_1.default)(400, '請輸入新密碼', next);
                 }
                 if (password === newPassword) {
-                    return next((0, appError_1.default)(400, '新密碼不可與原密碼相同', next));
+                    return (0, appError_1.default)(400, '新密碼不可與原密碼相同', next);
                 }
                 const errorMsg = [];
                 // 密碼檢查
@@ -193,7 +193,7 @@ const admin = {
                     errorMsg.push(pwdError);
                 }
                 if (errorMsg.length > 0) {
-                    return next((0, appError_1.default)(400, errorMsg, next));
+                    return (0, appError_1.default)(400, errorMsg, next);
                 }
                 newPassword = yield bcryptjs_1.default.hash(newPassword, 12);
                 yield host_1.default.findByIdAndUpdate(req.admin.id, {

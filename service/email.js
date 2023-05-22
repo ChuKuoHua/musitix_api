@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mailOptions = exports.transporter = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
-const moment_1 = __importDefault(require("moment"));
+const dayjs_1 = __importDefault(require("dayjs"));
 const transporter = nodemailer_1.default.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
@@ -24,7 +24,7 @@ const transporter = nodemailer_1.default.createTransport({
 });
 exports.transporter = transporter;
 const mailOptions = (email, token) => {
-    const now = (0, moment_1.default)();
+    const now = (0, dayjs_1.default)();
     const afterOneHour = now.add(1, 'hour');
     const time = afterOneHour.format('YYYY-MM-DD HH:mm:ss');
     return {

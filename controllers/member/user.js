@@ -46,6 +46,7 @@ const firebase_1 = __importDefault(require("../../middleware/firebase"));
 const jwt = __importStar(require("jsonwebtoken"));
 const connectRedis_1 = __importDefault(require("../../connections/connectRedis"));
 const email_1 = require("../../service/email");
+const userOrderModel_1 = require("../../models/userOrderModel");
 // 引入上傳圖片會用到的套件
 const bucket = firebase_1.default.storage().bucket();
 const user = {
@@ -53,9 +54,8 @@ const user = {
     login(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, password } = req.body;
-            console.log(email);
             if (!email || !password) {
-                return next((0, appError_1.default)(400, '帳號或密碼錯誤', next));
+                return (0, appError_1.default)(400, '帳號或密碼錯誤', next);
             }
             const user = yield users_1.default.findOne({
                 email,
@@ -63,11 +63,11 @@ const user = {
                 role: "user"
             }).select('+password');
             if (!user) {
-                return next((0, appError_1.default)(401, '無此會員或已停用', next));
+                return (0, appError_1.default)(401, '無此會員或已停用', next);
             }
             const auth = yield bcryptjs_1.default.compare(password, user.password);
             if (!auth) {
-                return next((0, appError_1.default)(400, '密碼錯誤', next));
+                return (0, appError_1.default)(400, '密碼錯誤', next);
             }
             (0, auth_1.generateSendJWT)(user, 200, res);
         });
@@ -79,15 +79,15 @@ const user = {
             // 檢查欄位
             const errorMsg = (0, checkError_1.checkRegister)(req);
             if (errorMsg.length > 0) {
-                return next((0, appError_1.default)(400, errorMsg, next));
+                return (0, appError_1.default)(400, errorMsg, next);
             }
             // 檢查暱稱是否已使用
-            const userCheck = yield users_1.default.findOne({
-                username: username
-            });
-            if (userCheck !== null) {
-                return next((0, appError_1.default)(400, "此暱稱已被使用", next));
-            }
+            // const userCheck = await User.findOne({
+            //   username: username
+            // })
+            // if(userCheck !== null) {
+            //   return appError(400, "此暱稱已被使用", next);
+            // }
             try {
                 // 加密密碼
                 password = yield bcryptjs_1.default.hash(req.body.password, 12);
@@ -101,10 +101,10 @@ const user = {
             catch (error) {
                 // 不打資料庫，使用 mongoose 回傳的錯誤檢查  
                 if (error && error.code === 11000) {
-                    return next((0, appError_1.default)(400, '此 Email 已使用', next));
+                    return (0, appError_1.default)(400, '此 Email 已使用', next);
                 }
                 else {
-                    return next((0, appError_1.default)(400, error, next));
+                    return (0, appError_1.default)(400, error, next);
                 }
             }
         });
@@ -139,7 +139,7 @@ const user = {
             const { username, picture } = req.body;
             const updateData = {};
             if (!username) {
-                return next((0, appError_1.default)("400", '暱稱不得為空值', next));
+                return (0, appError_1.default)("400", '暱稱不得為空值', next);
             }
             // 判斷是否有上傳圖片
             if (picture) {
@@ -180,7 +180,7 @@ const user = {
             });
             // 如果上傳過程中發生錯誤，會觸發 error 事件
             blobStream.on('error', (err) => {
-                return next((0, appError_1.default)("500", '上傳失敗', next));
+                return (0, appError_1.default)("500", '上傳失敗', next);
             });
             // 將檔案的 buffer 寫入 blobStream
             blobStream.end(file.buffer);
@@ -197,13 +197,13 @@ const user = {
             if (user) {
                 const auth = yield bcryptjs_1.default.compare(password, user.password);
                 if (!auth) {
-                    return next((0, appError_1.default)(400, '原密碼不正確', next));
+                    return (0, appError_1.default)(400, '原密碼不正確', next);
                 }
                 if (!newPassword) {
-                    return next((0, appError_1.default)(400, '請輸入新密碼', next));
+                    return (0, appError_1.default)(400, '請輸入新密碼', next);
                 }
                 if (password === newPassword) {
-                    return next((0, appError_1.default)(400, '新密碼不可與原密碼相同', next));
+                    return (0, appError_1.default)(400, '新密碼不可與原密碼相同', next);
                 }
                 const errorMsg = [];
                 // 密碼檢查
@@ -212,7 +212,7 @@ const user = {
                     errorMsg.push(pwdError);
                 }
                 if (errorMsg.length > 0) {
-                    return next((0, appError_1.default)(400, errorMsg, next));
+                    return (0, appError_1.default)(400, errorMsg, next);
                 }
                 newPassword = yield bcryptjs_1.default.hash(newPassword, 12);
                 yield users_1.default.findByIdAndUpdate(req.user.id, {
@@ -231,7 +231,7 @@ const user = {
                 email
             });
             if (!user) {
-                return next((0, appError_1.default)("400", "無此會員信箱", next));
+                return (0, appError_1.default)(400, "無此會員信箱", next);
             }
             // 建立會員 token
             const secretKey = (_a = process.env.JWT_SECRET) !== null && _a !== void 0 ? _a : '';
@@ -243,8 +243,7 @@ const user = {
             // email 寄信
             email_1.transporter.sendMail(options, (error, info) => {
                 if (error) {
-                    console.log(error);
-                    return next((0, appError_1.default)(500, error, next));
+                    return (0, appError_1.default)(500, error, next);
                 }
                 (0, handleSuccess_1.default)(res, '寄信成功');
             });
@@ -261,7 +260,7 @@ const user = {
             });
             if (user) {
                 if (!newPassword) {
-                    return next((0, appError_1.default)(400, '請輸入新密碼', next));
+                    return (0, appError_1.default)(400, '請輸入新密碼', next);
                 }
                 const errorMsg = [];
                 // 密碼檢查
@@ -270,7 +269,7 @@ const user = {
                     errorMsg.push(pwdError);
                 }
                 if (errorMsg.length > 0) {
-                    return next((0, appError_1.default)(400, errorMsg, next));
+                    return (0, appError_1.default)(400, errorMsg, next);
                 }
                 newPassword = yield bcryptjs_1.default.hash(newPassword, 12);
                 // 修改密碼
@@ -280,7 +279,7 @@ const user = {
                 (0, handleSuccess_1.default)(res, '密碼已修改');
             }
             else {
-                return next((0, appError_1.default)(400, '查無此會員', next));
+                return (0, appError_1.default)(400, '查無此會員', next);
             }
         });
     },
@@ -305,5 +304,13 @@ const user = {
             (0, handleSuccess_1.default)(res, '修改成功');
         });
     },
+    // 取得訂單列表
+    getOrderInfo(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            const userOrderInfo = yield userOrderModel_1.UserOrderModel.findById(id).lean();
+            (0, handleSuccess_1.default)(res, userOrderInfo);
+        });
+    }
 };
 exports.default = user;

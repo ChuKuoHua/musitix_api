@@ -18,6 +18,7 @@ require('./middleware/processError');
 const index_1 = __importDefault(require("./routes/index"));
 const user_1 = __importDefault(require("./routes/member/user"));
 const activity_1 = __importDefault(require("./routes/member/activity"));
+const question_1 = __importDefault(require("./routes/member/question"));
 const admin_1 = __importDefault(require("./routes/admin/admin"));
 const activityManage_1 = __importDefault(require("./routes/admin/activityManage"));
 const memberManage_1 = __importDefault(require("./routes/admin/memberManage"));
@@ -37,6 +38,7 @@ app.use(express_1.default.static(path_1.default.join(__dirname, 'public')));
 app.use('/', index_1.default);
 app.use('/api/users', user_1.default);
 app.use('/api/activities', activity_1.default);
+app.use('/api/questions', question_1.default);
 // 後台
 app.use('/admin', admin_1.default);
 app.use('/admin/users_mgmt', memberManage_1.default);
