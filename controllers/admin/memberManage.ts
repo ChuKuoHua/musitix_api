@@ -108,13 +108,9 @@ const memberManage = {
     const limitNum: number = limit ? Number(limit) : 25;
     const data: any = await UserOrderModel.find({
       userId: userId
-    }, 'buyer activityId cellPhone orderNumber orderStatus orderCreateDate memo ticketList.scheduleName ticketList.categoryName ticketList.price ticketList.ticketNumber ticketList.ticketStatus'
-    ).populate({
-      path: 'activityId',
-      select: 'title startDate'
-    }).skip((pageNum - 1) * limitNum)
+    }, 'buyer activityId cellPhone orderNumber orderStatus orderCreateDate memo ticketList.scheduleName ticketList.categoryName ticketList.price ticketList.ticketNumber ticketList.ticketStatus activityInfo.title activityInfo.totalAmount activityInfo.ticketTotalCount'
+    ).skip((pageNum - 1) * limitNum)
     .limit(limitNum);
-    
     // 取得總數量
     const count = await UserOrderModel.countDocuments({
       userId: userId

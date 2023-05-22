@@ -14,7 +14,7 @@ import * as jwt from 'jsonwebtoken';
 import redisClient from '../../connections/connectRedis';
 import { transporter, mailOptions } from '../../service/email';
 import { UserOrder, UserOrderModel } from '../../models/userOrderModel';
-
+import { createMpgAesEncrypt, createMpgShaEncrypt} from '../../service/crypto';
 // 引入上傳圖片會用到的套件
 const bucket = firebaseAdmin.storage().bucket();
 
@@ -287,7 +287,34 @@ const user = {
   async getOrderInfo(req: AuthRequest, res: Response, next: NextFunction) {
     const { id } = req.params;
     const userOrderInfo: UserOrder | null = await UserOrderModel.findById(id).lean();
-    handleSuccess(res, userOrderInfo);
+    const now = new Date();
+    const TimeStamp = now.getTime();
+    let aesEncrypt;
+    let shaEncrypt;
+
+    if(userOrderInfo) {
+      // 藍新金流資訊
+      const TradeInfo = {
+        TimeStamp,
+        MerchantOrderNo: userOrderInfo.orderNumber,
+        Amt: userOrderInfo.activityInfo.totalAmount,
+        ItemDesc: userOrderInfo.activityInfo.title,
+        Email: userOrderInfo.email
+      }
+      aesEncrypt = createMpgAesEncrypt(TradeInfo)
+      shaEncrypt = createMpgShaEncrypt(aesEncrypt)
+    }
+
+    const json = {
+      userOrderInfo,
+      TimeStamp, // Unix 格式
+			MerchantID: process.env.MerchantID,
+			Version: process.env.Version,
+      aesEncrypt,
+      shaEncrypt
+    }
+
+    handleSuccess(res, json);
   }
 }
 
