@@ -283,12 +283,28 @@ const user = {
 
     handleSuccess(res, '修改成功');
   },
-  // 取得訂單列表
+  // 取得訂單資訊
   async getOrderInfo(req: AuthRequest, res: Response, next: NextFunction) {
     const { id } = req.params;
     const userOrderInfo: UserOrder | null = await UserOrderModel.findById(id).lean();
     handleSuccess(res, userOrderInfo);
+  },
+  async getOrderList(req: AuthRequest, res: Response, next: NextFunction) {
+    const userId = req.user.id;
+    const userOrderList: UserOrder[] = await UserOrderModel.find({ userId }).lean();
+    const results = userOrderList.map((userOrder) => ({
+      orderId: userOrder._id.toString(),
+      activityTitle: userOrder.activityInfo.title,
+      orderCreateDate: userOrder.orderCreateDate,
+      ticketCount: userOrder.ticketList.length,
+      scheduleName: userOrder.ticketList.map((ticket) => ticket.scheduleName),
+      categoryName: userOrder.ticketList.map((ticket) => ticket.categoryName),
+      orderStatus: userOrder.orderStatus,
+    }));
+    
+    handleSuccess(res, results);
   }
+  
 }
 
 export default user;

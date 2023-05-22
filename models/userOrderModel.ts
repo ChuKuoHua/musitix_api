@@ -11,6 +11,7 @@ enum OrderStatus {
 }
 
 interface UserOrder {
+  _id: mongoose.Schema.Types.ObjectId;
   buyer: string;
   cellPhone: string;
   email: string;
@@ -30,6 +31,10 @@ interface UserOrder {
     mainImageUrl: string;
     totalAmount: number;
     ticketTotalCount: number;
+    ticketCategories: {
+      categoryName: string;
+      price: number;
+    }[];
   };
   activityId?: mongoose.Schema.Types.ObjectId;
   userId?: mongoose.Schema.Types.ObjectId;
@@ -93,7 +98,11 @@ const UserOrderSchema: Schema = new Schema({
     endDate: { type: Date},
     mainImageUrl: { type: String},
     totalAmount: { type: Number},
-    ticketTotalCount: { type: Number}
+    ticketTotalCount: { type: Number},
+    ticketCategories: [{
+      categoryName: { type: String},
+      price: { type: Number}
+    }]
   },
   activityId: {
     type: mongoose.Schema.Types.ObjectId,
