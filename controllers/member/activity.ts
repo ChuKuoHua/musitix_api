@@ -138,13 +138,40 @@ const activity = {
       address,
       memo
     } = req.body;
+
+    if (!ticketList.length) {
+      return next(appError(400, 'ticketList is invalid', next));
+    }
+
     const activity = await ActivityModel.findById(id);
     if (!activity) {
       return next(appError(400, '活動不存在', next));
     }
 
     const userId = req.user.id;
-    const orderNumber = await generateOrderNumber();
+    const orderNumber = generateOrderNumber();
+
+    let totalAmount = 0;
+    let ticketTotalCount = 0;
+    const ticketCategories = activity.schedules.flatMap(schedule => schedule.ticketCategories);
+
+    // 檢查是否有錯誤
+    for (const ticket of ticketList) {
+      const { id: ticketId } = ticket;
+
+      // 根據 ticketList 中的 ID 查找對應的 ticketCategory
+      const ticketCategory = ticketCategories.find(category => (category as any)._id.toString() === ticketId);
+
+      if (!ticketCategory) {
+        return next(appError(400, '票名不存在', next));
+      }
+
+      if (ticket.headCount > ticketCategory.remainingQuantity) {
+        return next(appError(400, '票已售完', next));
+      }
+    }
+
+    // 確定沒問題再建立model
     const newUserOrder = new UserOrderModel({
       buyer,
       cellPhone,
@@ -170,33 +197,19 @@ const activity = {
       userId: userId
     });
 
-    let totalAmount = 0;
-    let ticketTotalCount = 0;
     for (const ticket of ticketList) {
-      
       const { id: ticketId, headCount } = ticket;
 
       // 根據 ticketList 中的 ID 查找對應的 ticketCategory
-      const ticketCategory = activity.schedules
-        .flatMap(schedule => schedule.ticketCategories)
-        .find(category => (category as any)._id.toString() === ticketId);
-
-      if (!ticketCategory) {
-        return next(appError(400, '票名不存在', next));
-      }
-
-      // 減剩餘數量
-      if (ticketCategory.remainingQuantity === 0) {
-        return next(appError(400, '票已售完', next));
-      }
+      const ticketCategory = ticketCategories.find(category => (category as any)._id.toString() === ticketId);
 
       // 創建新的 ticketList
       for (let i = 0; i < headCount; i++) {
         const orderNumber = newUserOrder.orderNumber;
         const newUserTicket: Ticket = {
           scheduleName: activity.schedules.find(schedule => schedule.scheduleName)?.scheduleName || '',
-          categoryName: ticketCategory.categoryName,
-          price: ticketCategory.price,
+          categoryName: ticketCategory!.categoryName,
+          price: ticketCategory!.price,
           ticketNumber: `${orderNumber}-${newUserOrder.ticketList.length + 1}`, // 流水號
           ticketStatus: TicketStatus.PendingPayment,
           qrCode: await generateQRCode("ticketNumber"), // 生成QRCode
@@ -204,12 +217,12 @@ const activity = {
 
         newUserOrder.ticketList.push(newUserTicket);
 
-        totalAmount += ticketCategory.price;
-        ticketTotalCount+=1;
+        totalAmount += ticketCategory!.price;
+        ticketTotalCount += 1;
       }
 
       // 減少票的剩餘數量
-      ticketCategory.remainingQuantity -= headCount;
+      ticketCategory!.remainingQuantity -= headCount;
     }
 
     newUserOrder.activityInfo.totalAmount = totalAmount; // 新增總金額
@@ -221,8 +234,5 @@ const activity = {
     handleSuccess(res, "");
   }
 }
-
-
-
 
 export default activity;
