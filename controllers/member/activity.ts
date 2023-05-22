@@ -5,8 +5,8 @@ import handleSuccess from '../../service/handleSuccess';
 import appError from '../../service/appError';
 import { TicketStatus, OrderStatus, Ticket, UserOrderModel } from '../../models/userOrderModel';
 import { generateOrderNumber, generateQRCode } from '../../service/orderService';
-import User from '../../models/users';
-import { AuthRequest } from '../../models/other';
+import User from '../../models/usersModel';
+import { AuthRequest } from '../../models/otherModel';
 const activity = {
   async getPublishedActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
     const activities: Activity[] = await ActivityModel.find().lean();

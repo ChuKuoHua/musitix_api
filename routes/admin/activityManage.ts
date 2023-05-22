@@ -28,4 +28,6 @@ router.get('/', isAdmin, handleErrorAsync(activityManage.getAllActivities));
 // 活動資料(內容)by id
 router.get('/:id', isAdmin, handleErrorAsync(activityManage.getActivityById));
 
+// 活動入場 qrcode
+router.post('/:orderId/qrcode', isAdmin, handleErrorAsync(activityManage.admittanceQrcode));
 export default router;

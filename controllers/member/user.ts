@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthRequest, imageRequest } from '../../models/other';
-import User, { PreFilledInfo, Profiles } from '../../models/users';
-import { HTTPError } from '../../models/error';
+import { AuthRequest, imageRequest } from '../../models/otherModel';
+import User, { PreFilledInfo, Profiles } from '../../models/usersModel';
+import { HTTPError } from '../../models/errorModel';
 import { v4 as uuidv4 } from 'uuid';
 import appError from '../../service/appError';
 import handleSuccess from '../../service/handleSuccess';

@@ -6,8 +6,9 @@ import firebaseAdmin from '../../middleware/firebase';
 import ActivityModel, { Activity, ActivityStatus, CreateActivityCommand } from '../../models/activityModel';
 import handleSuccess from '../../service/handleSuccess';
 import appError from '../../service/appError';
-import { imageRequest } from '../../models/other';
+import { imageRequest } from '../../models/otherModel';
 import ActivityService from '../../service/actionActivity';
+import { UserOrderModel, OrderStatus } from '../../models/userOrderModel';
 
 const bucket = firebaseAdmin.storage().bucket();
 const activityService: ActivityService = new ActivityService();
@@ -148,8 +149,41 @@ const activityManage = {
     } else {
       appError(404, "Activity not found", next);
     }
-  }
+  },
+  async admittanceQrcode(req: Request, res: Response, next: NextFunction) {
+    const { orderId } = req.params;
+    await UserOrderModel.updateOne({
+      'ticketList.ticketNumber': orderId
+    }, {
+      $set: {
+        'orderStatus': OrderStatus.Used,
+        'ticketList.$[elem].ticketStatus': OrderStatus.Used
+      },
+    },{ 
+      arrayFilters: [{ "elem.ticketNumber": orderId }]
+    });
 
+    const data = await UserOrderModel.findOne({
+      'ticketList.ticketNumber': orderId
+    }, {
+      buyer: 1,
+      activityId: 1,
+      cellPhone: 1,
+      orderNumber: 1,
+      address: 1,
+      memo: 1,
+      "ticketList.$": 1
+    }).populate({
+      path: 'activityId',
+      select: 'title startDate endDate address location'
+    })
+
+    if (data) {
+      handleSuccess(res, data)
+    } else {
+      appError(400, "查無此訂單", next);
+    }
+  }
 }
 
 export default activityManage;

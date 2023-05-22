@@ -1,9 +1,9 @@
 import { Response, NextFunction } from 'express';
-import { Payload, AuthRequest } from '../models/other';
+import { Payload, AuthRequest } from '../models/otherModel';
 import appError from '../service/appError';
 import handleErrorAsync from '../service/handleErrorAsync';
-import { Profiles } from '../models/users';
-import Host from '../models/host';
+import { Profiles } from '../models/usersModel';
+import Host from '../models/hostModel';
 import redisClient from '../connections/connectRedis';
 import jsonwebtoken from 'jsonwebtoken';
 

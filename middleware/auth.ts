@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { Payload, AuthRequest } from "../models/other";
+import { Payload, AuthRequest } from "../models/otherModel";
 import appError from '../service/appError';
 import handleErrorAsync from '../service/handleErrorAsync';
-import User, { Profiles } from '../models/users';
+import User, { Profiles } from '../models/usersModel';
 import redisClient from '../connections/connectRedis';
 import jsonwebtoken from 'jsonwebtoken';
 

@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthRequest, imageRequest } from '../../models/other';
-import { Profiles } from '../../models/users';
+import { AuthRequest, imageRequest } from '../../models/otherModel';
+import { Profiles } from '../../models/usersModel';
 import appError from '../../service/appError';
 import handleSuccess from '../../service/handleSuccess';
 import { checkPwd } from '../../service/checkError';
 import { GetSignedUrlConfig, GetSignedUrlCallback } from '@google-cloud/storage';
 import { generateSendAdminJWT } from '../../middleware/admin';
-import Host from '../../models/host';
+import Host from '../../models/hostModel';
 import bcrypt from 'bcryptjs';
 import validator from 'validator';
 import firebaseAdmin from '../../middleware/firebase';
