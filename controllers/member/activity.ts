@@ -3,10 +3,18 @@ import { Request, Response, NextFunction } from 'express';
 import ActivityModel, { Activity, ActivityStatus } from '../../models/activityModel';
 import handleSuccess from '../../service/handleSuccess';
 import appError from '../../service/appError';
-
+import { TicketStatus, OrderStatus, Ticket, UserOrderModel } from '../../models/userOrderModel';
+import { generateOrderNumber, generateQRCode } from '../../service/orderService';
+import User from '../../models/users';
+import { AuthRequest } from '../../models/other';
 const activity = {
   async getPublishedActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
     const activities: Activity[] = await ActivityModel.find().lean();
+    const oneMonthBefore = new Date();
+    oneMonthBefore.setMonth(oneMonthBefore.getMonth() - 1);
+    const currentDate = new Date();
+    const oneMonthFromNow = new Date();
+    oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
 
     const hotActivities = activities.map(activity => ({
       id: (activity as any)._id.toString(),
@@ -24,9 +32,7 @@ const activity = {
 
     const upcomingActivities = activities.filter(activity => {
       const saleStartDate = new Date(activity.saleStartDate);
-      const sevenDaysFromNow = new Date();
-      sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-      return saleStartDate <= sevenDaysFromNow;
+      return currentDate <= saleStartDate && saleStartDate <= oneMonthFromNow;
     }).map(activity => ({
       id: (activity as any)._id.toString(),
       title: activity.title,
@@ -41,9 +47,7 @@ const activity = {
 
     const recentActivities = activities.filter(activity => {
       const startDate = new Date(activity.startDate);
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      return startDate <= sevenDaysAgo;
+      return startDate >= currentDate && startDate <= oneMonthFromNow;
     }).map(activity => ({
       id: (activity as any)._id.toString(),
       title: activity.title,
@@ -96,7 +100,12 @@ const activity = {
   async getActivityById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
     const activity: Activity | null = await ActivityModel.findById(id).lean();
-    handleSuccess(res, activity);
+    const { _id, ...activityData } = activity as any;
+    const response = {
+      id: _id.toString(),
+      ...activityData
+    }
+    handleSuccess(res, response);
   },
   async getScheduleInfoById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { scheduleId } = req.params;
@@ -119,9 +128,110 @@ const activity = {
 
     handleSuccess(res, result);
   },
-  async bookingActivity(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async bookingActivity(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+    const {
+      ticketList,
+      buyer,
+      cellPhone,
+      email,
+      address,
+      memo
+    } = req.body;
 
+    if (!ticketList.length) {
+      return next(appError(400, 'ticketList is invalid', next));
+    }
 
+    const activity = await ActivityModel.findById(id);
+    if (!activity) {
+      return next(appError(400, '活動不存在', next));
+    }
+
+    const userId = req.user.id;
+    const orderNumber = generateOrderNumber();
+
+    let totalAmount = 0;
+    let ticketTotalCount = 0;
+    const ticketCategories = activity.schedules.flatMap(schedule => schedule.ticketCategories);
+
+    // 檢查是否有錯誤
+    for (const ticket of ticketList) {
+      const { id: ticketId } = ticket;
+
+      // 根據 ticketList 中的 ID 查找對應的 ticketCategory
+      const ticketCategory = ticketCategories.find(category => (category as any)._id.toString() === ticketId);
+
+      if (!ticketCategory) {
+        return next(appError(400, '票名不存在', next));
+      }
+
+      if (ticket.headCount > ticketCategory.remainingQuantity) {
+        return next(appError(400, '票已售完', next));
+      }
+    }
+
+    // 確定沒問題再建立model
+    const newUserOrder = new UserOrderModel({
+      buyer,
+      cellPhone,
+      email,
+      address,
+      memo,
+      orderNumber,
+      orderStatus: OrderStatus.PendingPayment,
+      orderCreateDate: new Date(),
+      ticketList: [],
+      activityInfo: {
+        title: activity.title,
+        sponsorName: activity.sponsorName,
+        location: activity.location,
+        address: activity.address,
+        startDate: activity.startDate,
+        endDate: activity.endDate,
+        mainImageUrl: activity.mainImageUrl,
+        totalAmount: 0,
+        ticketTotalCount: 0
+      },
+      activityId: activity._id,
+      userId: userId
+    });
+
+    for (const ticket of ticketList) {
+      const { id: ticketId, headCount } = ticket;
+
+      // 根據 ticketList 中的 ID 查找對應的 ticketCategory
+      const ticketCategory = ticketCategories.find(category => (category as any)._id.toString() === ticketId);
+
+      // 創建新的 ticketList
+      for (let i = 0; i < headCount; i++) {
+        const orderNumber = newUserOrder.orderNumber;
+        const newUserTicket: Ticket = {
+          scheduleName: activity.schedules.find(schedule => schedule.scheduleName)?.scheduleName || '',
+          categoryName: ticketCategory!.categoryName,
+          price: ticketCategory!.price,
+          ticketNumber: `${orderNumber}-${newUserOrder.ticketList.length + 1}`, // 流水號
+          ticketStatus: TicketStatus.PendingPayment,
+          qrCode: await generateQRCode("ticketNumber"), // 生成QRCode
+        };
+
+        newUserOrder.ticketList.push(newUserTicket);
+
+        totalAmount += ticketCategory!.price;
+        ticketTotalCount += 1;
+      }
+
+      // 減少票的剩餘數量
+      ticketCategory!.remainingQuantity -= headCount;
+    }
+
+    newUserOrder.activityInfo.totalAmount = totalAmount; // 新增總金額
+    newUserOrder.activityInfo.ticketTotalCount = ticketTotalCount; // 新增總票數
+    // 保存 UserOrder 和更新活動
+    await newUserOrder.save();
+    await activity.save();
+
+    handleSuccess(res, "");
   }
 }
 

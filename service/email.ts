@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const mailOptions = (email: string, token: string) => {
-  const now = moment();
+  const now = dayjs();
   const afterOneHour = now.add(1, 'hour');
   const time = afterOneHour.format('YYYY-MM-DD HH:mm:ss');
 

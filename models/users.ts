@@ -62,7 +62,6 @@ const userSchema: Schema = new mongoose.Schema({
   },
   password:{
     type: String,
-    required: [true,'請輸入密碼'],
     minlength: 8,
     select: false
   },

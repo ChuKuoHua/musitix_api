@@ -7,6 +7,8 @@ const router = express.Router();
 
 // 全部會員資料
 router.get('/users_list', isAdmin, handleErrorAsync(memberControllers.usersList));
+// TODO 會員購票紀錄
+router.get('/:id/ticket_record', isAdmin, handleErrorAsync(memberControllers.ticketRecord));
 // 會員停用/啟用
 router.delete('/invalid_user', isAdmin, handleErrorAsync(memberControllers.invalidUser));
 // 刪除會員(後端用)
