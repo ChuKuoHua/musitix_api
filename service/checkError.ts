@@ -1,4 +1,4 @@
-import { AuthRequest } from "../models/other";
+import { AuthRequest } from "../models/otherModel";
 
 const validator = require('validator');
 const regex = /^(?=.*[a-z])(?=.*[A-Z])/;

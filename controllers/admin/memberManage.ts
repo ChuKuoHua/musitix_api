@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { searchRequest } from '../../models/other';
+import { searchRequest } from '../../models/otherModel';
 import appError from '../../service/appError';
 import handleSuccess from '../../service/handleSuccess';
-import User from '../../models/users';
+import User from '../../models/usersModel';
 import { UserOrderModel } from '../../models/userOrderModel';
 import ActivityModel from '../../models/activityModel';
 
@@ -106,15 +106,15 @@ const memberManage = {
     const { page, limit } = req.query;
     const pageNum: number = page ? Number(page) : 1;
     const limitNum: number = limit ? Number(limit) : 25;
-    const data = await UserOrderModel.find({
+    const data: any = await UserOrderModel.find({
       userId: userId
-    }, 'buyer activityId cellPhone orderNumber orderStatus memo  ticketList.scheduleName ticketList.categoryName ticketList.price ticketList.ticketNumber ticketList.ticketStatus'
+    }, 'buyer activityId cellPhone orderNumber orderStatus orderCreateDate memo ticketList.scheduleName ticketList.categoryName ticketList.price ticketList.ticketNumber ticketList.ticketStatus'
     ).populate({
       path: 'activityId',
       select: 'title startDate'
     }).skip((pageNum - 1) * limitNum)
     .limit(limitNum);
-
+    
     // 取得總數量
     const count = await UserOrderModel.countDocuments({
       userId: userId
