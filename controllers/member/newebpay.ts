@@ -51,20 +51,27 @@ const newebpay = {
       return appError(500, '查無此訂單', next);
     }
     if(response.Status === 'SUCCESS') {
-      await UserOrderModel.findByIdAndUpdate(orderId,
-        {
-          orderStatus: TicketStatus.ReadyToUse,
-          $set: { 'ticketList.$[].ticketStatus': TicketStatus.ReadyToUse },
-          payTime: newPayTime
+      
+      await UserOrderModel.updateOne({
+          orderNumber: orderId
+        }, {
+          $set: {
+            orderStatus: TicketStatus.ReadyToUse,
+            'ticketList.$[].ticketStatus': TicketStatus.ReadyToUse,
+            payTime: newPayTime
+          },
         }
       );
       handleSuccess(res, `付款完成，訂單：${orderId}`);
     } else {
-      await UserOrderModel.findByIdAndUpdate(orderId,
-        {
-          orderStatus: TicketStatus.Failed,
-          $set: { 'ticketList.$[].ticketStatus': TicketStatus.Failed },
-          payTime: newPayTime
+      await UserOrderModel.updateOne({
+          orderNumber: orderId
+        }, {
+          $set: {
+            orderStatus: TicketStatus.Failed,
+            'ticketList.$[].ticketStatus': TicketStatus.Failed,
+            payTime: newPayTime
+          },
         }
       );
       handleSuccess(res, `付款失敗，訂單：${orderId}`);

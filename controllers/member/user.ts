@@ -158,17 +158,32 @@ const user = {
   // NOTE 更新密碼
   async updatePassword(req: AuthRequest, res: Response, next: NextFunction) {
     let { password, newPassword, confirmPassword } = req.body;
-    const userId = req.user.id
+    const userId = req.user.id;
     const user = await User.findOne(
       {
         _id: userId
       },
     ).select('+password');
+
+    let isComparison = false
     if (user) {
-      const auth = await bcrypt.compare(password, user.password);
-      if (!auth) {
-        return appError(400, '原密碼不正確', next);
+      switch(user.loginType) {
+        case 'normal':
+          isComparison = await bcrypt.compare(password, user.password);
+          if (!isComparison) {
+            return appError(400, '原密碼不正確', next);
+          }
+          break;
+        case 'google':
+          if(user.password) {
+            isComparison = await bcrypt.compare(password, user.password);
+            if (!isComparison) {
+              return appError(400, '原密碼不正確', next);
+            }
+          }
+          break;
       }
+
       if (!newPassword) {
         return appError(400, '請輸入新密碼', next);
       }
@@ -199,11 +214,9 @@ const user = {
   // NOTE 忘記密碼寄信
   async forgotPassword(req: Request, res: Response, next: NextFunction) {
     const { email } = req.body;
-    const user = await User.findOne(
-      {
-        email
-      }
-    );
+    const user = await User.findOne({
+      email
+    });
 
     if (!user) {
       return appError(400, "無此會員信箱", next);
