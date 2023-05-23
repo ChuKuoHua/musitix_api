@@ -49,3 +49,10 @@ export interface searchRequest extends Request {
 export interface imageRequest extends Request {
   files: Express.Multer.File[];
 }
+
+export interface DocFromGoogle {
+  googleId: string,
+  username: string,
+  email: string,
+  picture?: string
+}
