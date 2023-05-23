@@ -29,5 +29,8 @@ router.get('/pre_filled_info', isAuth, handleErrorAsync(userControllers.getPreFi
 router.put('/pre_filled_info', isAuth, handleErrorAsync(userControllers.updatePreFilledInfo));
 // 取得訂單資訊
 router.get('/order_info/:id', isAuth, handleErrorAsync(userControllers.getOrderInfo));
-
+// 取得我的票券
+router.get('/ticket_record', isAuth, handleErrorAsync(userControllers.getOrderList));
+// 取消我的訂單
+router.delete('/order/:id', isAuth, handleErrorAsync(userControllers.deleteOrder));
 export default router;
