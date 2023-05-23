@@ -19,6 +19,7 @@ import indexRouter from './routes/index';
 import userRouter from './routes/member/user';
 import activityRouter from './routes/member/activity';
 import questionRouter from './routes/member/question';
+import googleAuthRouter from './routes/member/googleAuth';
 import adminRouter from './routes/admin/admin';
 import activityManageRouter from './routes/admin/activityManage';
 import memberManageRouter from './routes/admin/memberManage';
@@ -40,6 +41,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // route
 // 前台
 app.use('/', indexRouter);
+app.use('/google', googleAuthRouter);
 app.use('/api/users', userRouter);
 app.use('/api/activities', activityRouter);
 app.use('/api/questions', questionRouter);

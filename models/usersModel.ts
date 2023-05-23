@@ -1,4 +1,6 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Model } from 'mongoose';
+
+import { DocFromGoogle } from './otherModel';
 
 export interface Profiles {
   _id: string;
@@ -22,6 +24,10 @@ export interface IUser extends Document {
   // token?: string;
 
   preFilledInfo: PreFilledInfo;
+}
+
+interface IUserModel extends Model<IUser> {
+  findOrCreateWithGoogle(doc: DocFromGoogle): Promise<mongoose.Document<IUser>>;
 }
 
 // 預填資料
@@ -60,7 +66,7 @@ const userSchema: Schema = new mongoose.Schema({
     type: String,
     select: false
   },
-  password:{
+  password: {
     type: String,
     minlength: 8,
     select: false
@@ -69,17 +75,17 @@ const userSchema: Schema = new mongoose.Schema({
     type: String,
     default: ""
   },
-  role:{
+  role: {
     type: String,
     default: "user",
-    enum:["user"]
+    enum: ["user"]
   },
   loginType: {
     type: String,
     default: "normal",
-    enum:["normal","google"]
+    enum: ["normal", "google"]
   },
-  isDisabled: {     
+  isDisabled: {
     type: Boolean,
     default: false
   },
@@ -116,8 +122,22 @@ const userSchema: Schema = new mongoose.Schema({
       return preFilledInfo;
     }
   }
-});
+},
+  {
+    statics: {
+      async findOrCreateWithGoogle(doc: DocFromGoogle): Promise<mongoose.Document> {
+        let result = await this.findOne({ googleId: doc.googleId });
+        if (result) {
+          return result;
+        } else {
+          result = new this(doc);
+          return await result.save();
+        }
+      }
+    }
+  }
+);
 
-const User = mongoose.model<IUser>('user', userSchema);
+const User = mongoose.model<IUser, IUserModel>('user', userSchema);
 
 export default User;
