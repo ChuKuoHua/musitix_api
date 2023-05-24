@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { HTTPError } from "../models/error";
+import { HTTPError } from "../models/errorModel";
 /**
  * Module dependencies.
  */

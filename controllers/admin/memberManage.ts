@@ -1,10 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { searchRequest } from '../../models/other';
+import { searchRequest } from '../../models/otherModel';
 import appError from '../../service/appError';
 import handleSuccess from '../../service/handleSuccess';
-import User from '../../models/users';
+import User from '../../models/usersModel';
 import { UserOrderModel } from '../../models/userOrderModel';
-import ActivityModel from '../../models/activityModel';
 
 const memberManage = {
   // NOTE 會員資料
@@ -31,22 +30,20 @@ const memberManage = {
       isDisabled: disabled
     }).sort(sortAt)
     .skip((pageNum - 1) * limitNum)
-    .limit(limitNum)
+    .limit(limitNum).lean();
     
     // 取得總數量
     const count = await User.countDocuments({
       $or: [
         { id: { $regex: q } },
         { username: { $regex: q } },
-        { email: { $regex: q } },
+        { email: { $regex: q } }
       ],
       role: "user",
       isDisabled: isDisabled
     });
-
     // 計算總頁數
     const totalPages = Math.ceil(count / limitNum);
-
     const json = {
       totalCount: count, // 總數量
       totalPages: totalPages, // 總頁數
@@ -59,43 +56,32 @@ const memberManage = {
   },
   // NOTE 會員停用/啟用
   async invalidUser(req: Request, res: Response, next: NextFunction) {
-    let { userId, isDisabled } = req.body;
-
+    const { userId, isDisabled } = req.body;
     // 檢查有無此會員
-    const userCheck = await User.findOne({
-      "_id": userId
-    })
-
+    const userCheck = await User.findOne({ "_id": userId });
     if(!userCheck) {
       return appError(400,"查無此 id",next);
     }
-    
     await User.findByIdAndUpdate(userId, {
-      $set: {
-        isDisabled: isDisabled
-      }
-    })
-
-    if(isDisabled) {
-      handleSuccess(res, '此會員已停用')
+      $set: { isDisabled: isDisabled }
+    });
+    if (isDisabled) {
+      handleSuccess(res, '此會員已停用');
     } else {
-      handleSuccess(res, '此會員已啟用')
+      handleSuccess(res, '此會員已啟用');
     }
   },
   // 刪除會員(後端用)
   async deleteUser(req: Request, res: Response, next: NextFunction) {
-    let { userId, isDisabled } = req.body;
+    let { userId } = req.body;
 
     // 檢查有無此會員
-    const userCheck = await User.findOne({
-      "_id": userId
-    })
-
+    const userCheck = await User.findOne({ "_id": userId });
     if(!userCheck) {
-      return appError(400,"查無此 id",next);
+      return appError(400,"查無此 id",next)
     }
-    
-    const data = await User.deleteOne({"_id": userId})
+
+    const data = await User.deleteOne({ "_id": userId });
     if(data) {
       handleSuccess(res, '此會員已停用')
     }
@@ -106,23 +92,16 @@ const memberManage = {
     const { page, limit } = req.query;
     const pageNum: number = page ? Number(page) : 1;
     const limitNum: number = limit ? Number(limit) : 25;
-    const data = await UserOrderModel.find({
+    const data: any = await UserOrderModel.find({
       userId: userId
-    }, 'buyer activityId cellPhone orderNumber orderStatus memo  ticketList.scheduleName ticketList.categoryName ticketList.price ticketList.ticketNumber ticketList.ticketStatus'
-    ).populate({
-      path: 'activityId',
-      select: 'title startDate'
-    }).skip((pageNum - 1) * limitNum)
-    .limit(limitNum);
+    }, 'buyer activityId cellPhone orderNumber orderStatus orderCreateDate memo ticketList.scheduleName ticketList.categoryName ticketList.price ticketList.ticketNumber ticketList.ticketStatus activityInfo.title activityInfo.totalAmount activityInfo.ticketTotalCount'
+    ).skip((pageNum - 1) * limitNum)
+    .limit(limitNum).lean();
 
     // 取得總數量
-    const count = await UserOrderModel.countDocuments({
-      userId: userId
-    });
-
+    const count = await UserOrderModel.countDocuments({ userId: userId });
     // 計算總頁數
     const totalPages = Math.ceil(count / limitNum);
-
     const json = {
       totalCount: count, // 總數量
       totalPages: totalPages, // 總頁數

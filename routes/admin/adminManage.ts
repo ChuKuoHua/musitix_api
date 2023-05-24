@@ -1,7 +1,7 @@
 import express from 'express';
 import handleErrorAsync from '../../service/handleErrorAsync';
 import { isAdmin } from '../../middleware/admin';
-import adminControllers from '../../controllers/admin/admin';
+import adminControllers from '../../controllers/admin/adminManage';
 import upload from '../../service/image';
 
 const router = express.Router();

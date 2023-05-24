@@ -1,5 +1,5 @@
 import { NextFunction } from 'express';
-import { IError } from "../models/error";
+import { IError } from "../models/errorModel";
 
 /**
  * 

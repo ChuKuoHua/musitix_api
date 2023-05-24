@@ -6,8 +6,9 @@ import firebaseAdmin from '../../middleware/firebase';
 import ActivityModel, { Activity, ActivityStatus, CreateActivityCommand } from '../../models/activityModel';
 import handleSuccess from '../../service/handleSuccess';
 import appError from '../../service/appError';
-import { imageRequest } from '../../models/other';
+import { imageRequest } from '../../models/otherModel';
 import ActivityService from '../../service/actionActivity';
+import { UserOrderModel, OrderStatus } from '../../models/userOrderModel';
 
 const bucket = firebaseAdmin.storage().bucket();
 const activityService: ActivityService = new ActivityService();
@@ -146,10 +147,44 @@ const activityManage = {
     if (activity) {
       handleSuccess(res, activity)
     } else {
-      appError(404, "Activity not found", next);
+      return appError(404, "Activity not found", next);
+    }
+  },
+  async admittanceQrcode(req: Request, res: Response, next: NextFunction) {
+    const { ticketId } = req.params;
+    const ticketStatus = await UserOrderModel.findOne({
+      "ticketList": {
+        $elemMatch: {
+          "ticketNumber": ticketId,
+          "ticketStatus": 3
+        }
+      }
+    });
+
+    if(ticketStatus) {
+      return appError(200, "票券已使用", next);
+    }
+
+    await UserOrderModel.updateOne({
+      'ticketList.ticketNumber': ticketId
+    }, {
+      $set: {
+        'orderStatus': OrderStatus.Used,
+        'ticketList.$[elem].ticketStatus': OrderStatus.Used
+      },
+    },{ 
+      arrayFilters: [{ "elem.ticketNumber": ticketId }]
+    });
+
+    const data = await UserOrderModel.findOne({
+      'ticketList.ticketNumber': ticketId
+    }, 'buyer cellPhone orderNumber address memo ticketList.$ activityInfo.title activityInfo.location activityInfo.address activityInfo.startDat activityInfo.endDate');
+    if (data) {
+      handleSuccess(res, data);
+    } else {
+      return appError(400, "查無此訂單", next);
     }
   }
-
 }
 
 export default activityManage;

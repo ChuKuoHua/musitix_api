@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { IError } from "../models/error";
+import { IError } from "../models/errorModel";
 
 // express 錯誤處理
 // 自訂 err 錯誤

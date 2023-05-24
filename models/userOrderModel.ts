@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 enum OrderStatus {
-  Unknown = 0,
+  Failed = 0, // 付款失敗,
   ReadyToUse = 1, // 可使用
   PendingPayment = 2, // 待付款
   Used = 3, // 已使用
@@ -11,6 +11,7 @@ enum OrderStatus {
 }
 
 interface UserOrder {
+  _id: mongoose.Schema.Types.ObjectId;
   buyer: string;
   cellPhone: string;
   email: string;
@@ -30,6 +31,10 @@ interface UserOrder {
     mainImageUrl: string;
     totalAmount: number;
     ticketTotalCount: number;
+    ticketCategories: {
+      categoryName: string;
+      price: number;
+    }[];
   };
   activityId?: mongoose.Schema.Types.ObjectId;
   userId?: mongoose.Schema.Types.ObjectId;
@@ -79,7 +84,7 @@ const UserOrderSchema: Schema = new Schema({
   address: { type: String, required: true },
   orderNumber: { type: String, required: true },
   orderStatus: { type: Number,
-    default: OrderStatus.Unknown,
+    default: OrderStatus.PendingPayment,
     enum: OrderStatus, required: true},
   orderCreateDate: { type: Date, default: Date.now },
   memo: { type: String },
@@ -93,7 +98,11 @@ const UserOrderSchema: Schema = new Schema({
     endDate: { type: Date},
     mainImageUrl: { type: String},
     totalAmount: { type: Number},
-    ticketTotalCount: { type: Number}
+    ticketTotalCount: { type: Number},
+    ticketCategories: [{
+      categoryName: { type: String},
+      price: { type: Number}
+    }]
   },
   activityId: {
     type: mongoose.Schema.Types.ObjectId,
