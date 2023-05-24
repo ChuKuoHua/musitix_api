@@ -26,7 +26,6 @@ import activityManageRouter from './routes/admin/activityManage';
 import memberManageRouter from './routes/admin/memberManage';
 import bannerManageRouter from './routes/admin/bannerManage';
 
-
 // express
 const app = express();
 
