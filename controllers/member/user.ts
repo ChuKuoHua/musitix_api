@@ -141,23 +141,12 @@ const user = {
     const userId = req.user.id;
     const user = await User.findOne({ _id: userId }).select('+password');
 
-    let isComparison = false
     if (user) {
-      switch(user.loginType) {
-        case 'normal':
-          isComparison = await bcrypt.compare(password, user.password);
-          if (!isComparison) {
-            return appError(400, '原密碼不正確', next);
-          }
-          break;
-        case 'google':
-          if(user.password) {
-            isComparison = await bcrypt.compare(password, user.password);
-            if (!isComparison) {
-              return appError(400, '原密碼不正確', next);
-            }
-          }
-          break;
+      if(user.password) {
+        const checkPassword = await bcrypt.compare(password, user.password);
+        if (!checkPassword) {
+          return appError(400, '原密碼不正確', next);
+        }
       }
 
       if (!newPassword) {

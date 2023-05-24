@@ -1,13 +1,11 @@
 import crypto from 'crypto';
-
+const NotifyURL = `${process.env.BACKEND_BASE_URL}/api/activities/spgateway_notify`;
 const {
   HASHKEY,
   HASHIV,
   MerchantID,
   Version,
   RespondType,
-  NotifyURL,
-  ReturnURL,
   ClientBackURL }: any = process.env;
 
 // 字串組合
