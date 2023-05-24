@@ -49,25 +49,31 @@ const newebpay = {
             const dateObj = (0, dayjs_1.default)(payTime, inputFormat);
             // 將日期物件轉換為指定格式的字串
             const newPayTime = dateObj.format(outputFormat);
-            const orderData = yield userOrderModel_1.UserOrderModel.findOne({
-                orderNumber: orderId
-            });
+            const orderData = yield userOrderModel_1.UserOrderModel.findOne({ orderNumber: orderId });
             if (!orderData) {
                 return (0, appError_1.default)(500, '查無此訂單', next);
             }
             if (response.Status === 'SUCCESS') {
-                yield userOrderModel_1.UserOrderModel.findByIdAndUpdate(orderId, {
-                    orderStatus: userOrderModel_1.TicketStatus.ReadyToUse,
-                    $set: { 'ticketList.$[].ticketStatus': userOrderModel_1.TicketStatus.ReadyToUse },
-                    payTime: newPayTime
+                yield userOrderModel_1.UserOrderModel.updateOne({
+                    orderNumber: orderId
+                }, {
+                    $set: {
+                        orderStatus: userOrderModel_1.TicketStatus.ReadyToUse,
+                        'ticketList.$[].ticketStatus': userOrderModel_1.TicketStatus.ReadyToUse,
+                        payTime: newPayTime
+                    },
                 });
                 (0, handleSuccess_1.default)(res, `付款完成，訂單：${orderId}`);
             }
             else {
-                yield userOrderModel_1.UserOrderModel.findByIdAndUpdate(orderId, {
-                    orderStatus: userOrderModel_1.TicketStatus.Failed,
-                    $set: { 'ticketList.$[].ticketStatus': userOrderModel_1.TicketStatus.Failed },
-                    payTime: newPayTime
+                yield userOrderModel_1.UserOrderModel.updateOne({
+                    orderNumber: orderId
+                }, {
+                    $set: {
+                        orderStatus: userOrderModel_1.TicketStatus.Failed,
+                        'ticketList.$[].ticketStatus': userOrderModel_1.TicketStatus.Failed,
+                        payTime: newPayTime
+                    },
                 });
                 (0, handleSuccess_1.default)(res, `付款失敗，訂單：${orderId}`);
             }

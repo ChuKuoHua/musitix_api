@@ -27,7 +27,7 @@ exports.OrderStatus = exports.TicketStatus = exports.UserOrderModel = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 var OrderStatus;
 (function (OrderStatus) {
-    OrderStatus[OrderStatus["Unknown"] = 0] = "Unknown";
+    OrderStatus[OrderStatus["Failed"] = 0] = "Failed";
     OrderStatus[OrderStatus["ReadyToUse"] = 1] = "ReadyToUse";
     OrderStatus[OrderStatus["PendingPayment"] = 2] = "PendingPayment";
     OrderStatus[OrderStatus["Used"] = 3] = "Used";
@@ -66,7 +66,7 @@ const UserOrderSchema = new mongoose_1.Schema({
     address: { type: String, required: true },
     orderNumber: { type: String, required: true },
     orderStatus: { type: Number,
-        default: OrderStatus.Unknown,
+        default: OrderStatus.PendingPayment,
         enum: OrderStatus, required: true },
     orderCreateDate: { type: Date, default: Date.now },
     memo: { type: String },
@@ -80,7 +80,11 @@ const UserOrderSchema = new mongoose_1.Schema({
         endDate: { type: Date },
         mainImageUrl: { type: String },
         totalAmount: { type: Number },
-        ticketTotalCount: { type: Number }
+        ticketTotalCount: { type: Number },
+        ticketCategories: [{
+                categoryName: { type: String },
+                price: { type: Number }
+            }]
     },
     activityId: {
         type: mongoose_1.default.Schema.Types.ObjectId,

@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateSendJWT = exports.isForgotAuth = exports.isAuth = void 0;
 const appError_1 = __importDefault(require("../service/appError"));
 const handleErrorAsync_1 = __importDefault(require("../service/handleErrorAsync"));
-const users_1 = __importDefault(require("../models/users"));
+const usersModel_1 = __importDefault(require("../models/usersModel"));
 const connectRedis_1 = __importDefault(require("../connections/connectRedis"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const isAuth = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -46,11 +46,8 @@ const isAuth = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(voi
     if (!session) {
         return next((0, appError_1.default)(401, '你尚未登入！', next));
     }
-    const currentUser = yield users_1.default.findById(decoded.id);
+    const currentUser = yield usersModel_1.default.findById(decoded.id);
     if (currentUser !== null) {
-        // if(!currentUser.token) {
-        //   return next(appError(401, '你尚未登入！', next));
-        // }
         req.user = {
             id: currentUser._id.toString(),
             email: currentUser.email,
@@ -86,7 +83,7 @@ const isForgotAuth = (0, handleErrorAsync_1.default)((req, res, next) => __await
             }
         });
     });
-    const currentUser = yield users_1.default.findById(decoded.id);
+    const currentUser = yield usersModel_1.default.findById(decoded.id);
     if (currentUser !== null) {
         req.user = {
             id: currentUser._id.toString(),
@@ -113,11 +110,6 @@ const generateSendJWT = (user, statusCode, res) => __awaiter(void 0, void 0, voi
     connectRedis_1.default.set(user._id.toString(), token, {
         EX: second * day,
     });
-    // await User.findByIdAndUpdate(user._id,
-    //   {
-    //     token: token
-    //   }
-    // );
     res.status(statusCode).json({
         message: '成功',
         user: {

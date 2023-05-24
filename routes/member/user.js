@@ -33,4 +33,8 @@ router.get('/pre_filled_info', auth_1.isAuth, (0, handleErrorAsync_1.default)(us
 router.put('/pre_filled_info', auth_1.isAuth, (0, handleErrorAsync_1.default)(user_1.default.updatePreFilledInfo));
 // 取得訂單資訊
 router.get('/order_info/:id', auth_1.isAuth, (0, handleErrorAsync_1.default)(user_1.default.getOrderInfo));
+// 取得我的票券
+router.get('/ticket_record', auth_1.isAuth, (0, handleErrorAsync_1.default)(user_1.default.getOrderList));
+// 取消我的訂單
+router.delete('/order/:id', auth_1.isAuth, (0, handleErrorAsync_1.default)(user_1.default.deleteOrder));
 exports.default = router;

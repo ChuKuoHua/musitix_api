@@ -35,7 +35,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const users_1 = __importDefault(require("../../models/users"));
+const usersModel_1 = __importDefault(require("../../models/usersModel"));
 const uuid_1 = require("uuid");
 const appError_1 = __importDefault(require("../../service/appError"));
 const handleSuccess_1 = __importDefault(require("../../service/handleSuccess"));
@@ -47,6 +47,7 @@ const jwt = __importStar(require("jsonwebtoken"));
 const connectRedis_1 = __importDefault(require("../../connections/connectRedis"));
 const email_1 = require("../../service/email");
 const userOrderModel_1 = require("../../models/userOrderModel");
+const crypto_1 = require("../../service/crypto");
 // 引入上傳圖片會用到的套件
 const bucket = firebase_1.default.storage().bucket();
 const user = {
@@ -57,7 +58,7 @@ const user = {
             if (!email || !password) {
                 return (0, appError_1.default)(400, '帳號或密碼錯誤', next);
             }
-            const user = yield users_1.default.findOne({
+            const user = yield usersModel_1.default.findOne({
                 email,
                 isDisabled: false,
                 role: "user"
@@ -91,11 +92,7 @@ const user = {
             try {
                 // 加密密碼
                 password = yield bcryptjs_1.default.hash(req.body.password, 12);
-                yield users_1.default.create({
-                    email,
-                    password,
-                    username
-                });
+                yield usersModel_1.default.create({ email, password, username });
                 (0, handleSuccess_1.default)(res, '註冊成功', 201);
             }
             catch (error) {
@@ -112,11 +109,6 @@ const user = {
     // NOTE 登出
     logout(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            // await User.findByIdAndUpdate(req.user.id,
-            //   {
-            //     token: ''
-            //   }
-            // );
             yield connectRedis_1.default.del(req.user.id);
             (0, handleSuccess_1.default)(res, '已登出');
         });
@@ -125,11 +117,7 @@ const user = {
     profile(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { username, picture, email } = req.user;
-            const data = {
-                email,
-                username,
-                picture
-            };
+            const data = { email, username, picture };
             (0, handleSuccess_1.default)(res, data);
         });
     },
@@ -146,9 +134,7 @@ const user = {
                 updateData.picture = picture;
             }
             updateData.username = username;
-            yield users_1.default.findByIdAndUpdate(req.user.id, {
-                $set: updateData
-            });
+            yield usersModel_1.default.findByIdAndUpdate(req.user.id, { $set: updateData });
             (0, handleSuccess_1.default)(res, '修改成功');
         });
     },
@@ -191,13 +177,13 @@ const user = {
         return __awaiter(this, void 0, void 0, function* () {
             let { password, newPassword, confirmPassword } = req.body;
             const userId = req.user.id;
-            const user = yield users_1.default.findOne({
-                _id: userId
-            }).select('+password');
+            const user = yield usersModel_1.default.findOne({ _id: userId }).select('+password');
             if (user) {
-                const auth = yield bcryptjs_1.default.compare(password, user.password);
-                if (!auth) {
-                    return (0, appError_1.default)(400, '原密碼不正確', next);
+                if (user.password) {
+                    const checkPassword = yield bcryptjs_1.default.compare(password, user.password);
+                    if (!checkPassword) {
+                        return (0, appError_1.default)(400, '原密碼不正確', next);
+                    }
                 }
                 if (!newPassword) {
                     return (0, appError_1.default)(400, '請輸入新密碼', next);
@@ -215,9 +201,7 @@ const user = {
                     return (0, appError_1.default)(400, errorMsg, next);
                 }
                 newPassword = yield bcryptjs_1.default.hash(newPassword, 12);
-                yield users_1.default.findByIdAndUpdate(req.user.id, {
-                    password: newPassword
-                });
+                yield usersModel_1.default.findByIdAndUpdate(req.user.id, { password: newPassword });
                 (0, handleSuccess_1.default)(res, '密碼已修改');
             }
         });
@@ -227,9 +211,7 @@ const user = {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const { email } = req.body;
-            const user = yield users_1.default.findOne({
-                email
-            });
+            const user = yield usersModel_1.default.findOne({ email });
             if (!user) {
                 return (0, appError_1.default)(400, "無此會員信箱", next);
             }
@@ -255,9 +237,7 @@ const user = {
             let { newPassword, confirmPassword } = req.body;
             const userId = req.user.id;
             // 檢查會員是否存在
-            const user = yield users_1.default.findOne({
-                _id: userId
-            });
+            const user = yield usersModel_1.default.findOne({ _id: userId });
             if (user) {
                 if (!newPassword) {
                     return (0, appError_1.default)(400, '請輸入新密碼', next);
@@ -273,9 +253,7 @@ const user = {
                 }
                 newPassword = yield bcryptjs_1.default.hash(newPassword, 12);
                 // 修改密碼
-                yield users_1.default.findByIdAndUpdate(req.user.id, {
-                    password: newPassword
-                });
+                yield usersModel_1.default.findByIdAndUpdate(req.user.id, { password: newPassword });
                 (0, handleSuccess_1.default)(res, '密碼已修改');
             }
             else {
@@ -287,7 +265,7 @@ const user = {
     getPreFilledInfo(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const userId = req.user.id;
-            const data = yield users_1.default
+            const data = yield usersModel_1.default
                 .findById(userId)
                 .select('preFilledInfo');
             (0, handleSuccess_1.default)(res, data.preFilledInfo);
@@ -299,17 +277,85 @@ const user = {
             const userId = req.user.id;
             const { email, buyer, cellPhone, address } = req.body;
             const preFilledInfo = { email, buyer, cellPhone, address };
-            const data = yield users_1.default
+            const data = yield usersModel_1.default
                 .findByIdAndUpdate(userId, { preFilledInfo });
             (0, handleSuccess_1.default)(res, '修改成功');
         });
     },
-    // 取得訂單列表
+    // 取得訂單資訊
     getOrderInfo(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
             const userOrderInfo = yield userOrderModel_1.UserOrderModel.findById(id).lean();
-            (0, handleSuccess_1.default)(res, userOrderInfo);
+            const now = new Date();
+            const TimeStamp = now.getTime();
+            let aesEncrypt;
+            let shaEncrypt;
+            if (userOrderInfo) {
+                // 藍新金流資訊
+                const TradeInfo = {
+                    TimeStamp,
+                    MerchantOrderNo: userOrderInfo.orderNumber,
+                    Amt: userOrderInfo.activityInfo.totalAmount,
+                    ItemDesc: userOrderInfo.activityInfo.title,
+                    Email: userOrderInfo.email
+                };
+                aesEncrypt = (0, crypto_1.createMpgAesEncrypt)(TradeInfo);
+                shaEncrypt = (0, crypto_1.createMpgShaEncrypt)(aesEncrypt);
+            }
+            const json = {
+                order: userOrderInfo,
+                TimeStamp,
+                MerchantID: process.env.MerchantID,
+                Version: process.env.Version,
+                aesEncrypt,
+                shaEncrypt
+            };
+            (0, handleSuccess_1.default)(res, json);
+        });
+    },
+    getOrderList(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userId = req.user.id;
+            const userOrderList = yield userOrderModel_1.UserOrderModel.find({ userId }).lean();
+            const results = userOrderList.map((userOrder) => ({
+                orderId: userOrder._id.toString(),
+                activityTitle: userOrder.activityInfo.title,
+                orderCreateDate: userOrder.orderCreateDate,
+                ticketCount: userOrder.ticketList.length,
+                scheduleName: userOrder.ticketList.map((ticket) => ticket.scheduleName),
+                categoryName: userOrder.ticketList.map((ticket) => ticket.categoryName),
+                orderStatus: userOrder.orderStatus,
+            }));
+            (0, handleSuccess_1.default)(res, results);
+        });
+    },
+    deleteOrder(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            // 檢查訂單是否存在
+            const existingUserOrder = yield userOrderModel_1.UserOrderModel.findById(id);
+            if (!existingUserOrder) {
+                return (0, appError_1.default)(400, '查無此訂單', next);
+            }
+            // 更新所有票券的狀態為 "Refunded"
+            existingUserOrder.ticketList.forEach(ticket => {
+                ticket.ticketStatus = userOrderModel_1.TicketStatus.Refunded;
+            });
+            // 檢查是否所有票券都已退票
+            const allTicketsRefunded = existingUserOrder.ticketList.every(ticket => ticket.ticketStatus === userOrderModel_1.TicketStatus.Refunded);
+            // 如果所有票券都已退票，則將訂單狀態更新為 "Refunded"
+            if (allTicketsRefunded) {
+                existingUserOrder.orderStatus = userOrderModel_1.OrderStatus.Refunded;
+            }
+            // 更新訂單和票券狀態
+            yield userOrderModel_1.UserOrderModel.updateOne({ _id: id }, {
+                $set: {
+                    orderStatus: existingUserOrder.orderStatus,
+                    ticketList: existingUserOrder.ticketList
+                }
+            });
+            (0, handleSuccess_1.default)(res, "退票成功");
         });
     }
 };

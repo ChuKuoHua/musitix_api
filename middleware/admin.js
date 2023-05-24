@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateSendAdminJWT = exports.isAdmin = void 0;
 const appError_1 = __importDefault(require("../service/appError"));
 const handleErrorAsync_1 = __importDefault(require("../service/handleErrorAsync"));
-const host_1 = __importDefault(require("../models/host"));
+const hostModel_1 = __importDefault(require("../models/hostModel"));
 const connectRedis_1 = __importDefault(require("../connections/connectRedis"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const isAdmin = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -46,11 +46,8 @@ const isAdmin = (0, handleErrorAsync_1.default)((req, res, next) => __awaiter(vo
     if (!session) {
         return next((0, appError_1.default)(401, '你尚未登入！', next));
     }
-    const currentUser = yield host_1.default.findById(decoded.id);
+    const currentUser = yield hostModel_1.default.findById(decoded.id);
     if (currentUser !== null) {
-        // if(!currentUser.token) {
-        //   return next(appError(401,'你尚未登入！',next));
-        // }
         req.admin = {
             id: currentUser._id.toString(),
             email: currentUser.email,
@@ -78,11 +75,6 @@ const generateSendAdminJWT = (host, statusCode, res) => __awaiter(void 0, void 0
     connectRedis_1.default.set(host._id.toString(), token, {
         EX: second * day,
     });
-    // await Host.findByIdAndUpdate(host._id,
-    //   {
-    //     token: token
-    //   }
-    // );
     res.status(statusCode).json({
         message: '成功',
         user: {

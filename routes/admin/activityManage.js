@@ -23,4 +23,6 @@ router.post('/upload_image', admin_1.isAdmin, image_1.default, (0, handleErrorAs
 router.get('/', admin_1.isAdmin, (0, handleErrorAsync_1.default)(activityManage_1.default.getAllActivities));
 // 活動資料(內容)by id
 router.get('/:id', admin_1.isAdmin, (0, handleErrorAsync_1.default)(activityManage_1.default.getActivityById));
+// 活動入場 qrcode
+router.post('/:ticketId/qrcode', admin_1.isAdmin, (0, handleErrorAsync_1.default)(activityManage_1.default.admittanceQrcode));
 exports.default = router;

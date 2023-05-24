@@ -5,7 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createMpgAesDecrypt = exports.createMpgShaEncrypt = exports.createMpgAesEncrypt = void 0;
 const crypto_1 = __importDefault(require("crypto"));
-const { HASHKEY, HASHIV, MerchantID, Version, RespondType, NotifyURL, ReturnURL, ClientBackURL } = process.env;
+const NotifyURL = `${process.env.BACKEND_BASE_URL}/api/activities/spgateway_notify`;
+const { HASHKEY, HASHIV, MerchantID, Version, RespondType, ClientBackURL } = process.env;
 // 字串組合
 function genDataChain(order) {
     // 付款期限

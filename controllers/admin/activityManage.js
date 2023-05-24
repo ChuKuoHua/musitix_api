@@ -41,6 +41,7 @@ const activityModel_1 = __importStar(require("../../models/activityModel"));
 const handleSuccess_1 = __importDefault(require("../../service/handleSuccess"));
 const appError_1 = __importDefault(require("../../service/appError"));
 const actionActivity_1 = __importDefault(require("../../service/actionActivity"));
+const userOrderModel_1 = require("../../models/userOrderModel");
 const bucket = firebase_1.default.storage().bucket();
 const activityService = new actionActivity_1.default();
 const activityManage = {
@@ -173,7 +174,42 @@ const activityManage = {
                 (0, handleSuccess_1.default)(res, activity);
             }
             else {
-                (0, appError_1.default)(404, "Activity not found", next);
+                return (0, appError_1.default)(404, "Activity not found", next);
+            }
+        });
+    },
+    admittanceQrcode(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { ticketId } = req.params;
+            const ticketStatus = yield userOrderModel_1.UserOrderModel.findOne({
+                "ticketList": {
+                    $elemMatch: {
+                        "ticketNumber": ticketId,
+                        "ticketStatus": 3
+                    }
+                }
+            });
+            if (ticketStatus) {
+                return (0, appError_1.default)(200, "票券已使用", next);
+            }
+            yield userOrderModel_1.UserOrderModel.updateOne({
+                'ticketList.ticketNumber': ticketId
+            }, {
+                $set: {
+                    'orderStatus': userOrderModel_1.OrderStatus.Used,
+                    'ticketList.$[elem].ticketStatus': userOrderModel_1.OrderStatus.Used
+                },
+            }, {
+                arrayFilters: [{ "elem.ticketNumber": ticketId }]
+            });
+            const data = yield userOrderModel_1.UserOrderModel.findOne({
+                'ticketList.ticketNumber': ticketId
+            }, 'buyer cellPhone orderNumber address memo ticketList.$ activityInfo.title activityInfo.location activityInfo.address activityInfo.startDat activityInfo.endDate');
+            if (data) {
+                (0, handleSuccess_1.default)(res, data);
+            }
+            else {
+                return (0, appError_1.default)(400, "查無此訂單", next);
             }
         });
     }

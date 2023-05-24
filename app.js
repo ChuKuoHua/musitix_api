@@ -17,11 +17,14 @@ require('./middleware/processError');
 // route
 const index_1 = __importDefault(require("./routes/index"));
 const user_1 = __importDefault(require("./routes/member/user"));
+const banner_1 = __importDefault(require("./routes/member/banner"));
 const activity_1 = __importDefault(require("./routes/member/activity"));
 const question_1 = __importDefault(require("./routes/member/question"));
-const admin_1 = __importDefault(require("./routes/admin/admin"));
+const googleAuth_1 = __importDefault(require("./routes/member/googleAuth"));
+const adminManage_1 = __importDefault(require("./routes/admin/adminManage"));
 const activityManage_1 = __importDefault(require("./routes/admin/activityManage"));
 const memberManage_1 = __importDefault(require("./routes/admin/memberManage"));
+const bannerManage_1 = __importDefault(require("./routes/admin/bannerManage"));
 // express
 const app = (0, express_1.default)();
 // view engine setup
@@ -36,13 +39,16 @@ app.use(express_1.default.static(path_1.default.join(__dirname, 'public')));
 // route
 // 前台
 app.use('/', index_1.default);
+app.use('/google', googleAuth_1.default);
 app.use('/api/users', user_1.default);
 app.use('/api/activities', activity_1.default);
 app.use('/api/questions', question_1.default);
+app.use('/api/banner_about', banner_1.default);
 // 後台
-app.use('/admin', admin_1.default);
+app.use('/admin', adminManage_1.default);
 app.use('/admin/users_mgmt', memberManage_1.default);
 app.use('/admin/activities', activityManage_1.default);
+app.use('/admin/banner_mgmt', bannerManage_1.default);
 // 404 路由
 app.use(notFound_1.default);
 // 錯誤處理
