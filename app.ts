@@ -17,12 +17,14 @@ require('./middleware/processError');
 // route
 import indexRouter from './routes/index';
 import userRouter from './routes/member/user';
+import bannerRouter from './routes/member/banner';
 import activityRouter from './routes/member/activity';
 import questionRouter from './routes/member/question';
 import googleAuthRouter from './routes/member/googleAuth';
-import adminRouter from './routes/admin/admin';
+import adminRouter from './routes/admin/adminManage';
 import activityManageRouter from './routes/admin/activityManage';
 import memberManageRouter from './routes/admin/memberManage';
+import bannerManageRouter from './routes/admin/bannerManage';
 
 // express
 const app = express();
@@ -45,12 +47,13 @@ app.use('/google', googleAuthRouter);
 app.use('/api/users', userRouter);
 app.use('/api/activities', activityRouter);
 app.use('/api/questions', questionRouter);
+app.use('/api/banner_about', bannerRouter);
 
 // 後台
-app.use('/admin', adminRouter)
-app.use('/admin/users_mgmt', memberManageRouter)
-app.use('/admin/activities', activityManageRouter)
-
+app.use('/admin', adminRouter);
+app.use('/admin/users_mgmt', memberManageRouter);
+app.use('/admin/activities', activityManageRouter);
+app.use('/admin/banner_mgmt', bannerManageRouter);
 // 404 路由
 app.use(notFound);
 
