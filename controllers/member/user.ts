@@ -26,13 +26,11 @@ const user = {
     if (!email || !password) {
       return appError(400, '帳號或密碼錯誤', next);
     }
-    const user = await User.findOne(
-      {
+    const user = await User.findOne({
         email,
         isDisabled: false, // false 啟用 true 停用
         role: "user"
-      },
-    ).select('+password');
+      }).select('+password');
     if (!user) {
       return appError(401, '無此會員或已停用', next);
     }
@@ -47,11 +45,11 @@ const user = {
   async register(req: AuthRequest, res: Response, next: NextFunction) {
     let { email, username, password } = req.body;
     // 檢查欄位
-    const errorMsg = checkRegister(req)
-
-    if (errorMsg.length > 0) {
+    const errorMsg = checkRegister(req);
+    if (errorMsg.length > 0) { 
       return appError(400, errorMsg, next);
     }
+
     // 檢查暱稱是否已使用
     // const userCheck = await User.findOne({
     //   username: username
@@ -64,12 +62,7 @@ const user = {
     try {
       // 加密密碼
       password = await bcrypt.hash(req.body.password, 12);
-      await User.create({
-        email,
-        password,
-        username
-      });
-
+      await User.create({ email, password, username });
       handleSuccess(res, '註冊成功', 201)
     } catch (error) {
       // 不打資料庫，使用 mongoose 回傳的錯誤檢查  
@@ -82,24 +75,13 @@ const user = {
   },
   // NOTE 登出
   async logout(req: AuthRequest, res: Response) {
-    // await User.findByIdAndUpdate(req.user.id,
-    //   {
-    //     token: ''
-    //   }
-    // );
-    await redisClient.del(req.user.id)
-    handleSuccess(res, '已登出')
+    await redisClient.del(req.user.id);
+    handleSuccess(res, '已登出');
   },
   // NOTE 取得個人資料
   async profile(req: AuthRequest, res: Response) {
     const { username, picture, email } = req.user
-
-    const data = {
-      email,
-      username,
-      picture
-    }
-
+    const data = { email, username, picture };
     handleSuccess(res, data);
   },
   // NOTE 更新個人資料
@@ -113,11 +95,9 @@ const user = {
     if (picture) {
       updateData.picture = picture
     }
-    updateData.username = username
+    updateData.username = username;
 
-    await User.findByIdAndUpdate(req.user.id, {
-      $set: updateData
-    })
+    await User.findByIdAndUpdate(req.user.id, { $set: updateData });
     handleSuccess(res, '修改成功')
   },
 
@@ -159,11 +139,7 @@ const user = {
   async updatePassword(req: AuthRequest, res: Response, next: NextFunction) {
     let { password, newPassword, confirmPassword } = req.body;
     const userId = req.user.id;
-    const user = await User.findOne(
-      {
-        _id: userId
-      },
-    ).select('+password');
+    const user = await User.findOne({ _id: userId }).select('+password');
 
     let isComparison = false
     if (user) {
@@ -190,34 +166,24 @@ const user = {
       if (password === newPassword) {
         return appError(400, '新密碼不可與原密碼相同', next);
       }
-      const errorMsg = []
+      const errorMsg = [];
       // 密碼檢查
-      const pwdError = checkPwd(newPassword, confirmPassword)
+      const pwdError = checkPwd(newPassword, confirmPassword);
       if (pwdError) {
         errorMsg.push(pwdError)
       }
-
       if (errorMsg.length > 0) {
         return appError(400, errorMsg, next);
       }
       newPassword = await bcrypt.hash(newPassword, 12);
-
-      await User.findByIdAndUpdate(req.user.id,
-        {
-          password: newPassword
-        }
-      );
-
+      await User.findByIdAndUpdate(req.user.id, { password: newPassword });
       handleSuccess(res, '密碼已修改');
     }
   },
   // NOTE 忘記密碼寄信
   async forgotPassword(req: Request, res: Response, next: NextFunction) {
     const { email } = req.body;
-    const user = await User.findOne({
-      email
-    });
-
+    const user = await User.findOne({ email });
     if (!user) {
       return appError(400, "無此會員信箱", next);
     }
@@ -227,10 +193,8 @@ const user = {
       { id: user._id }, secretKey, {
       expiresIn: process.env.MAIL_EXPIRES_TIME
     });
-
     // 建立 email 內容
     const options = mailOptions(email, token)
-
     // email 寄信
     transporter.sendMail(options, (error, info) => {
       if (error) {
@@ -244,34 +208,23 @@ const user = {
     let { newPassword, confirmPassword } = req.body;
     const userId = req.user.id
     // 檢查會員是否存在
-    const user = await User.findOne(
-      {
-        _id: userId
-      },
-    );
+    const user = await User.findOne({ _id: userId });
     if (user) {
       if (!newPassword) {
         return appError(400, '請輸入新密碼', next);
       }
-      const errorMsg = []
+      const errorMsg = [];
       // 密碼檢查
       const pwdError = checkPwd(newPassword, confirmPassword)
       if (pwdError) {
         errorMsg.push(pwdError)
       }
-
       if (errorMsg.length > 0) {
         return appError(400, errorMsg, next);
       }
       newPassword = await bcrypt.hash(newPassword, 12);
-
       // 修改密碼
-      await User.findByIdAndUpdate(req.user.id,
-        {
-          password: newPassword
-        }
-      );
-
+      await User.findByIdAndUpdate(req.user.id, { password: newPassword });
       handleSuccess(res, '密碼已修改');
     } else {
       return appError(400, '查無此會員', next);

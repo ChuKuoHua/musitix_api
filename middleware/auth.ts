@@ -24,9 +24,9 @@ const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: Ne
   // 驗證 token 正確性
   const decoded = await new Promise<Payload>((resolve, reject) => {
     jsonwebtoken.verify(token!, process.env.JWT_SECRET!, (err: jsonwebtoken.VerifyErrors | null, payload) => {
-      if(err){
+      if (err) {
         reject(err)
-      }else{
+      } else {
         resolve(payload as Payload)
       }
     })
@@ -42,9 +42,6 @@ const isAuth = handleErrorAsync(async (req: AuthRequest, res: Response, next: Ne
   
   const currentUser = await User.findById(decoded.id);
   if (currentUser !== null) {
-    // if(!currentUser.token) {
-    //   return next(appError(401, '你尚未登入！', next));
-    // }
     req.user = {
       id: currentUser._id.toString(),
       email: currentUser.email,
@@ -76,9 +73,9 @@ const isForgotAuth = handleErrorAsync(async (req: AuthRequest, res: Response, ne
   // 驗證 token 正確性
   const decoded = await new Promise<Payload>((resolve, reject) => {
     jsonwebtoken.verify(token!, process.env.JWT_SECRET!, (err: jsonwebtoken.VerifyErrors | null, payload) => {
-      if(err){
+      if (err) {
         reject(err)
-      }else{
+      } else {
         resolve(payload as Payload)
       }
     })
@@ -106,19 +103,12 @@ const generateSendJWT = async (user: Profiles, statusCode: number, res: Response
   }, process.env.JWT_SECRET!, {
     expiresIn: process.env.JWT_EXPIRES_DAY
   });
-
   const second: number = 24 * 60 * 60;
   const day: number = process.env.REDIS_EXPIRES_DAY ? Number(process.env.REDIS_EXPIRES_DAY) : 30;
 
   redisClient.set(user._id.toString(), token, {
     EX: second * day,
   });
-  
-  // await User.findByIdAndUpdate(user._id,
-  //   {
-  //     token: token
-  //   }
-  // );
   res.status(statusCode).json({
     message: '成功',
     user:{

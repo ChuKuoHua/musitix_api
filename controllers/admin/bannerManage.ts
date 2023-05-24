@@ -20,15 +20,14 @@ const bannerManage = {
   // NOTE 新增
   async addBanner(req: Request, res: Response, next: NextFunction) {
     const { title, image } = req.body;
-    if(!image) {
+    if (!image) {
       return appError(400, '請選擇圖片', next);
     }
 
     const data = await BannerModel.findOne({ image: image });
-    if(data) {
+    if (data) {
       return appError(400, '圖片已存在', next);
     }
-
     try {
       await BannerModel.create({ title, image });
       handleSuccess(res, '新增成功');
@@ -41,13 +40,13 @@ const bannerManage = {
     const { id } = req.params;
     // 檢查有無此會員
     const bannerCheck = await BannerModel.findById(id)
-    if(!bannerCheck) {
+    if (!bannerCheck) {
       return appError(400,"查無此 id",next);
     }
-    
+
     const data = await BannerModel.deleteOne({ '_id':id })
-    if(data) {
-      handleSuccess(res, '已刪除')
+    if (data) {
+      handleSuccess(res, '已刪除');
     }
   }
 }
