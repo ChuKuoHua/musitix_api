@@ -32,8 +32,11 @@ const user = {
         role: "user"
       }).select('+password');
     
-    if (!user || !user.password) {
+    if (!user) {
       return appError(401, '無此會員或已停用', next);
+    }
+    if (!user.password) {
+      return appError(401, '此會員須為 google 登入', next);
     }
 
     const auth = await bcrypt.compare(password, user.password);
