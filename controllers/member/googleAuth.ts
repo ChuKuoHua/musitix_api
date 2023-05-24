@@ -7,7 +7,7 @@ import { IUser, Profiles } from '../../models/usersModel';
 const googleAuth = {
   // 導向前台登入頁，帶有code資訊
   async redirect(req: Request, res: Response, next: NextFunction) {
-    res.redirect(process.env.FRONTEND_BASE_URL + '/#/login?googleAuthCode=' + req.query.code);
+    res.redirect(process.env.ClientBackURL + '/#/login?googleAuthCode=' + req.query.code);
   },
 
   async loginWithGoogle(req: Request, res: Response, next: NextFunction) {
