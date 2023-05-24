@@ -31,7 +31,8 @@ const user = {
         isDisabled: false, // false 啟用 true 停用
         role: "user"
       }).select('+password');
-    if (!user) {
+    
+    if (!user || !user.password) {
       return appError(401, '無此會員或已停用', next);
     }
 
