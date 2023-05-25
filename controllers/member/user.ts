@@ -328,7 +328,23 @@ const user = {
     );
 
     handleSuccess(res, "退票成功");
-  }
+  },
+  // 取得訂單QRcode狀態(只取狀態)
+  async getOrderQRcodeStatus(req: AuthRequest, res: Response, next: NextFunction) {
+    const { id } = req.params; // order id
+    const userOrderInfo: UserOrder | null = await UserOrderModel
+      .findById(id)
+      .select({
+        'ticketList.ticketStatus': 1,
+        'ticketList._id': 1
+      });
+
+    if (!userOrderInfo) {
+      return appError(400, '查無訂單', next);
+    }
+
+    handleSuccess(res, userOrderInfo);
+  },
 }
 
 export default user;
