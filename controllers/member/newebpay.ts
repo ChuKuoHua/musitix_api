@@ -30,16 +30,15 @@ const newebpay = {
     const data = createMpgAesDecrypt(response.TradeInfo);
 
     // 取得交易內容，並查詢本地端資料庫是否有相符的訂單
-    const orderId = data?.Result?.MerchantOrderNo;
-    const payTime = data?.Result?.PayTime;
+    const { MerchantOrderNo, PayTime, TradeNo, PaymentType, EscrowBank } =data.Result
     const inputFormat = 'YYYY-MM-DDTHH:mm:ss';
     const outputFormat = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
     // 將日期字串轉換為指定格式的日期物件
-    const dateObj = dayjs(payTime, inputFormat);
+    const dateObj = dayjs(PayTime, inputFormat);
     // 將日期物件轉換為指定格式的字串
     const newPayTime = dateObj.format(outputFormat);
     const orderData = await UserOrderModel.findOne(
-      { orderNumber: orderId }
+      { orderNumber: MerchantOrderNo }
     )
 
     if(!orderData) {
@@ -47,19 +46,22 @@ const newebpay = {
     }
     if(response.Status === 'SUCCESS') {
       await UserOrderModel.updateOne({
-          orderNumber: orderId
+          orderNumber: MerchantOrderNo
         }, {
           $set: {
             orderStatus: TicketStatus.ReadyToUse,
             'ticketList.$[].ticketStatus': TicketStatus.ReadyToUse,
-            payTime: newPayTime
+            payTime: newPayTime, // 付款時間
+            tradeNo: TradeNo, // 藍新金流交易序號
+            paymentType: PaymentType, // 交易類型
+            escrowBank: EscrowBank // 付款銀行
           },
         }
       );
-      handleSuccess(res, `付款完成，訂單：${orderId}`);
+      handleSuccess(res, `付款完成，訂單：${ MerchantOrderNo }`);
     } else {
       await UserOrderModel.updateOne({
-          orderNumber: orderId
+          orderNumber: MerchantOrderNo
         }, {
           $set: {
             orderStatus: TicketStatus.Failed,
@@ -68,7 +70,7 @@ const newebpay = {
           },
         }
       );
-      handleSuccess(res, `付款失敗，訂單：${orderId}`);
+      handleSuccess(res, `付款失敗，訂單：${ MerchantOrderNo }`);
     }
   },
 }
