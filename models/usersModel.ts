@@ -126,11 +126,12 @@ const userSchema: Schema = new mongoose.Schema({
   {
     statics: {
       async findOrCreateWithGoogle(doc: DocFromGoogle): Promise<mongoose.Document> {
-        let result = await this.findOne({ googleId: doc.googleId });
+        let result = await this.findOne({ email: doc.email });
         if (result) {
           return result;
         } else {
           result = new this(doc);
+          result.loginType = 'google';
           return await result.save();
         }
       }
