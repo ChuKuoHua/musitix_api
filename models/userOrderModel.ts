@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
 enum OrderStatus {
   Failed = 0, // 付款失敗,
@@ -44,6 +44,7 @@ interface UserOrder {
 
 
 export interface Ticket {
+  _id: Types.ObjectId; 
   scheduleName: string;
   categoryName: string;
   price: number;

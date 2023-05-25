@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-
+import { Types } from 'mongoose';
 import ActivityModel, { Activity, ActivityStatus } from '../../models/activityModel';
 import handleSuccess from '../../service/handleSuccess';
 import appError from '../../service/appError';
-import { TicketStatus, OrderStatus, Ticket, UserOrderModel } from '../../models/userOrderModel';
+import { TicketStatus, OrderStatus, Ticket, UserOrderModel, UserOrder } from '../../models/userOrderModel';
 import { generateOrderNumber, generateQRCode } from '../../service/orderService';
 import User from '../../models/usersModel';
 import { AuthRequest } from '../../models/otherModel';
+import { createMpgAesEncrypt, createMpgShaEncrypt } from '../../service/crypto';
 const activity = {
   async getPublishedActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
     const activities: Activity[] = await ActivityModel.find().lean();
@@ -207,12 +208,13 @@ const activity = {
       for (let i = 0; i < headCount; i++) {
         const orderNumber = newUserOrder.orderNumber;
         const newUserTicket: Ticket = {
+          _id: new Types.ObjectId(),
           scheduleName: activity.schedules.find(schedule => schedule.scheduleName)?.scheduleName || '',
           categoryName: ticketCategory!.categoryName,
           price: ticketCategory!.price,
-          ticketNumber: `${orderNumber}-${newUserOrder.ticketList.length + 1}`, // 流水號
+          ticketNumber: `${orderNumber}-${newUserOrder.ticketList.length + 1}`,
           ticketStatus: TicketStatus.PendingPayment,
-          qrCode: await generateQRCode("ticketNumber"), // 生成QRCode
+          qrCode: await generateQRCode("ticketNumber"),
         };
 
         newUserOrder.ticketList.push(newUserTicket);
@@ -232,7 +234,55 @@ const activity = {
     await activity.save();
 
     handleSuccess(res, "");
+  },
+  async getNewebPayInfo(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+    const userOrderInfo: UserOrder | null = await UserOrderModel.findById(id).lean();
+    const now = new Date();
+    const TimeStamp = now.getTime();
+    let aesEncrypt;
+    let shaEncrypt;
+
+    if(userOrderInfo) {
+      // 藍新金流資訊
+      const TradeInfo = {
+        TimeStamp,
+        MerchantOrderNo: userOrderInfo.orderNumber,
+        Amt: userOrderInfo.activityInfo.totalAmount,
+        ItemDesc: userOrderInfo.activityInfo.title,
+        Email: userOrderInfo.email
+      }
+      aesEncrypt = createMpgAesEncrypt(TradeInfo)
+      shaEncrypt = createMpgShaEncrypt(aesEncrypt)
+    }
+    const ticketListWithId = userOrderInfo?.ticketList.map(({ _id, ...ticket }) => ({ id: _id, ...ticket }));
+
+    const json = {
+      order: {
+        orderNumber: userOrderInfo?.orderNumber,
+        buyer: userOrderInfo?.buyer,
+        cellPhone: userOrderInfo?.cellPhone,
+        email: userOrderInfo?.email,
+        address: userOrderInfo?.address,
+        memo: userOrderInfo?.memo,
+        activityInfo: {
+          title: userOrderInfo?.activityInfo.title,
+          sponsorName: userOrderInfo?.activityInfo.sponsorName,
+          location: userOrderInfo?.activityInfo.location,
+          address: userOrderInfo?.activityInfo.address,
+        },
+        ticketList: ticketListWithId
+      },
+      TimeStamp, // Unix 格式
+			MerchantID: process.env.MerchantID,
+			Version: process.env.Version,
+      aesEncrypt,
+      shaEncrypt
+    }
+
+    handleSuccess(res, json);
   }
+
 }
 
 export default activity;
