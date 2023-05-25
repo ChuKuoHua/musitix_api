@@ -345,6 +345,14 @@ const user = {
 
     handleSuccess(res, userOrderInfo);
   },
+  // 使用者是否已設定密碼
+  async getPasswordExisted(req: AuthRequest, res: Response, next: NextFunction) {
+    const userId = req.user.id;
+    const user = await User
+      .findById(userId)
+      .select('password');
+    handleSuccess(res, !!(user?.password));
+  },
 }
 
 export default user;
