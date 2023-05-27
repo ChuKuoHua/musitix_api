@@ -212,7 +212,7 @@ const activity = {
           scheduleName: activity.schedules.find(schedule => schedule.scheduleName)?.scheduleName || '',
           categoryName: ticketCategory!.categoryName,
           price: ticketCategory!.price,
-          ticketNumber: `${orderNumber}-${newUserOrder.ticketList.length + 1}`,
+          ticketNumber: `${orderNumber}_${newUserOrder.ticketList.length + 1}`,
           ticketStatus: TicketStatus.PendingPayment,
           qrCode: await generateQRCode("ticketNumber"),
         };
@@ -226,14 +226,17 @@ const activity = {
       // 減少票的剩餘數量
       ticketCategory!.remainingQuantity -= headCount;
     }
-
+    const orderId = newUserOrder._id;
     newUserOrder.activityInfo.totalAmount = totalAmount; // 新增總金額
     newUserOrder.activityInfo.ticketTotalCount = ticketTotalCount; // 新增總票數
     // 保存 UserOrder 和更新活動
     await newUserOrder.save();
     await activity.save();
+    const result = {
+      orderId: orderId.toString(),
+    }
 
-    handleSuccess(res, "");
+    handleSuccess(res, result);
   },
   async getNewebPayInfo(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;

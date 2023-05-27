@@ -3,7 +3,7 @@ import qrcode from 'qrcode';
 export function generateOrderNumber(): string {
     const timestamp = new Date().getTime(); //取得時間
     const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0'); //產生 4 位數的隨機數字
-    const orderNumber = `FEST2023-${timestamp}-${randomSuffix}`; //組合訂單編號
+    const orderNumber = `FEST2023_${timestamp}_${randomSuffix}`; //組合訂單編號
     return orderNumber;
 }
 
