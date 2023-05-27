@@ -26,7 +26,7 @@ function genDataChain(order: NewbPayTradeInfo) {
     + `&NotifyURL=${NotifyURL}` // 處理付款回傳結果
     // + `&ReturnURL=${ReturnURL}` // 支付完成返回商店網址
     // 支付取消返回商店網址
-    + `&ClientBackURL=${ClientBackURL}/#/order/${order.MerchantOrderNo}`
+    + `&ClientBackURL=${ClientBackURL}/#/member/ticket/${order.MerchantOrderNo}`
     + `&ExpireDate=${ExpireDate ? ExpireDate : ''}`; // 付款期限
 }
 
