@@ -35,7 +35,6 @@ export interface AuthRequest extends Request {
     picture: string | null;
   }
 }
-
 export interface searchRequest extends Request {
   query: {
     timeSort: string;
@@ -45,7 +44,6 @@ export interface searchRequest extends Request {
     limit: string;
   }
 }
-
 export interface imageRequest extends Request {
   files: Express.Multer.File[];
 }
@@ -55,4 +53,13 @@ export interface DocFromGoogle {
   username: string,
   email: string,
   picture?: string
+}
+
+export interface NewbPayTradeInfo {
+  TimeStamp: number,
+  ExpireDate?: string,
+  MerchantOrderNo: string,
+  Amt: number,
+  ItemDesc: string,
+  Email: string,
 }
