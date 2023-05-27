@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
 enum OrderStatus {
   Failed = 0, // 付款失敗,
@@ -39,11 +39,15 @@ interface UserOrder {
   activityId?: mongoose.Schema.Types.ObjectId;
   userId?: mongoose.Schema.Types.ObjectId;
   payTime?: Date;
+  tradeNo?: string;
+  paymentType?: string;
+  escrowBank?: string;
 }
 
 
 
 export interface Ticket {
+  _id: Types.ObjectId; 
   scheduleName: string;
   categoryName: string;
   price: number;
@@ -112,7 +116,10 @@ const UserOrderSchema: Schema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user'
   },
-  payTime: { type: Date }
+  payTime: { type: Date },
+  tradeNo: { type: String },
+  paymentType: { type: String },
+  escrowBank: { type: String },
 });
 
 const UserOrderModel = mongoose.model<UserOrder>('userorder', UserOrderSchema);
