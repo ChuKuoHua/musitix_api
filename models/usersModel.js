@@ -99,12 +99,13 @@ const userSchema = new mongoose_1.default.Schema({
     statics: {
         findOrCreateWithGoogle(doc) {
             return __awaiter(this, void 0, void 0, function* () {
-                let result = yield this.findOne({ googleId: doc.googleId });
+                let result = yield this.findOne({ email: doc.email });
                 if (result) {
                     return result;
                 }
                 else {
                     result = new this(doc);
+                    result.loginType = 'google';
                     return yield result.save();
                 }
             });

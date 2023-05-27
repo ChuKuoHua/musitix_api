@@ -66,6 +66,9 @@ const user = {
             if (!user) {
                 return (0, appError_1.default)(401, '無此會員或已停用', next);
             }
+            if (!user.password) {
+                return (0, appError_1.default)(401, '此會員須為 google 登入', next);
+            }
             const auth = yield bcryptjs_1.default.compare(password, user.password);
             if (!auth) {
                 return (0, appError_1.default)(400, '密碼錯誤', next);
@@ -357,6 +360,32 @@ const user = {
             });
             (0, handleSuccess_1.default)(res, "退票成功");
         });
-    }
+    },
+    // 取得訂單QRcode狀態(只取狀態)
+    getOrderQRcodeStatus(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params; // order id
+            const userOrderInfo = yield userOrderModel_1.UserOrderModel
+                .findById(id)
+                .select({
+                'ticketList.ticketStatus': 1,
+                'ticketList._id': 1
+            });
+            if (!userOrderInfo) {
+                return (0, appError_1.default)(400, '查無訂單', next);
+            }
+            (0, handleSuccess_1.default)(res, userOrderInfo);
+        });
+    },
+    // 使用者是否已設定密碼
+    getPasswordExisted(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userId = req.user.id;
+            const user = yield usersModel_1.default
+                .findById(userId)
+                .select('password');
+            (0, handleSuccess_1.default)(res, !!(user === null || user === void 0 ? void 0 : user.password));
+        });
+    },
 };
 exports.default = user;

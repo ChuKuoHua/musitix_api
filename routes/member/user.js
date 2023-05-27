@@ -37,4 +37,8 @@ router.get('/order_info/:id', auth_1.isAuth, (0, handleErrorAsync_1.default)(use
 router.get('/ticket_record', auth_1.isAuth, (0, handleErrorAsync_1.default)(user_1.default.getOrderList));
 // 取消我的訂單
 router.delete('/order/:id', auth_1.isAuth, (0, handleErrorAsync_1.default)(user_1.default.deleteOrder));
+// 取得訂單所有的QRcode狀態(只取狀態)
+router.get('/order_qrcode/:id', auth_1.isAuth, (0, handleErrorAsync_1.default)(user_1.default.getOrderQRcodeStatus));
+// 使用者是否已設定密碼
+router.get('/pw_existed', auth_1.isAuth, (0, handleErrorAsync_1.default)(user_1.default.getPasswordExisted));
 exports.default = router;

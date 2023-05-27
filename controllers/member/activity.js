@@ -46,11 +46,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const mongoose_1 = require("mongoose");
 const activityModel_1 = __importStar(require("../../models/activityModel"));
 const handleSuccess_1 = __importDefault(require("../../service/handleSuccess"));
 const appError_1 = __importDefault(require("../../service/appError"));
 const userOrderModel_1 = require("../../models/userOrderModel");
 const orderService_1 = require("../../service/orderService");
+const crypto_1 = require("../../service/crypto");
 const activity = {
     getPublishedActivities(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -223,12 +225,13 @@ const activity = {
                 for (let i = 0; i < headCount; i++) {
                     const orderNumber = newUserOrder.orderNumber;
                     const newUserTicket = {
+                        _id: new mongoose_1.Types.ObjectId(),
                         scheduleName: ((_a = activity.schedules.find(schedule => schedule.scheduleName)) === null || _a === void 0 ? void 0 : _a.scheduleName) || '',
                         categoryName: ticketCategory.categoryName,
                         price: ticketCategory.price,
-                        ticketNumber: `${orderNumber}-${newUserOrder.ticketList.length + 1}`,
+                        ticketNumber: `${orderNumber}_${newUserOrder.ticketList.length + 1}`,
                         ticketStatus: userOrderModel_1.TicketStatus.PendingPayment,
-                        qrCode: yield (0, orderService_1.generateQRCode)("ticketNumber"), // 生成QRCode
+                        qrCode: yield (0, orderService_1.generateQRCode)("ticketNumber"),
                     };
                     newUserOrder.ticketList.push(newUserTicket);
                     totalAmount += ticketCategory.price;
@@ -237,12 +240,65 @@ const activity = {
                 // 減少票的剩餘數量
                 ticketCategory.remainingQuantity -= headCount;
             }
+            const orderId = newUserOrder._id;
             newUserOrder.activityInfo.totalAmount = totalAmount; // 新增總金額
             newUserOrder.activityInfo.ticketTotalCount = ticketTotalCount; // 新增總票數
             // 保存 UserOrder 和更新活動
             yield newUserOrder.save();
             yield activity.save();
-            (0, handleSuccess_1.default)(res, "");
+            const result = {
+                orderId: orderId.toString(),
+            };
+            (0, handleSuccess_1.default)(res, result);
+        });
+    },
+    getNewebPayInfo(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            const userOrderInfo = yield userOrderModel_1.UserOrderModel.findById(id).lean();
+            const now = new Date();
+            const TimeStamp = now.getTime();
+            let aesEncrypt;
+            let shaEncrypt;
+            if (userOrderInfo) {
+                // 藍新金流資訊
+                const TradeInfo = {
+                    TimeStamp,
+                    MerchantOrderNo: userOrderInfo.orderNumber,
+                    Amt: userOrderInfo.activityInfo.totalAmount,
+                    ItemDesc: userOrderInfo.activityInfo.title,
+                    Email: userOrderInfo.email
+                };
+                aesEncrypt = (0, crypto_1.createMpgAesEncrypt)(TradeInfo);
+                shaEncrypt = (0, crypto_1.createMpgShaEncrypt)(aesEncrypt);
+            }
+            const ticketListWithId = userOrderInfo === null || userOrderInfo === void 0 ? void 0 : userOrderInfo.ticketList.map((_a) => {
+                var { _id } = _a, ticket = __rest(_a, ["_id"]);
+                return (Object.assign({ id: _id }, ticket));
+            });
+            const json = {
+                order: {
+                    orderNumber: userOrderInfo === null || userOrderInfo === void 0 ? void 0 : userOrderInfo.orderNumber,
+                    buyer: userOrderInfo === null || userOrderInfo === void 0 ? void 0 : userOrderInfo.buyer,
+                    cellPhone: userOrderInfo === null || userOrderInfo === void 0 ? void 0 : userOrderInfo.cellPhone,
+                    email: userOrderInfo === null || userOrderInfo === void 0 ? void 0 : userOrderInfo.email,
+                    address: userOrderInfo === null || userOrderInfo === void 0 ? void 0 : userOrderInfo.address,
+                    memo: userOrderInfo === null || userOrderInfo === void 0 ? void 0 : userOrderInfo.memo,
+                    activityInfo: {
+                        title: userOrderInfo === null || userOrderInfo === void 0 ? void 0 : userOrderInfo.activityInfo.title,
+                        sponsorName: userOrderInfo === null || userOrderInfo === void 0 ? void 0 : userOrderInfo.activityInfo.sponsorName,
+                        location: userOrderInfo === null || userOrderInfo === void 0 ? void 0 : userOrderInfo.activityInfo.location,
+                        address: userOrderInfo === null || userOrderInfo === void 0 ? void 0 : userOrderInfo.activityInfo.address,
+                    },
+                    ticketList: ticketListWithId
+                },
+                TimeStamp,
+                MerchantID: process.env.MerchantID,
+                Version: process.env.Version,
+                aesEncrypt,
+                shaEncrypt
+            };
+            (0, handleSuccess_1.default)(res, json);
         });
     }
 };

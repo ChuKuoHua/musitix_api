@@ -30,7 +30,6 @@ const newebpay = {
     // },
     // 回傳狀態後，修改訂單狀態
     newebpayNotify(req, res, next) {
-        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const response = req.body;
             const thisShaEncrypt = (0, crypto_1.createMpgShaEncrypt)(response.TradeInfo);
@@ -41,33 +40,35 @@ const newebpay = {
             // NOTE 確認交易：Notify
             const data = (0, crypto_1.createMpgAesDecrypt)(response.TradeInfo);
             // 取得交易內容，並查詢本地端資料庫是否有相符的訂單
-            const orderId = (_a = data === null || data === void 0 ? void 0 : data.Result) === null || _a === void 0 ? void 0 : _a.MerchantOrderNo;
-            const payTime = (_b = data === null || data === void 0 ? void 0 : data.Result) === null || _b === void 0 ? void 0 : _b.PayTime;
+            const { MerchantOrderNo, PayTime, TradeNo, PaymentType, EscrowBank } = data.Result;
             const inputFormat = 'YYYY-MM-DDTHH:mm:ss';
             const outputFormat = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
             // 將日期字串轉換為指定格式的日期物件
-            const dateObj = (0, dayjs_1.default)(payTime, inputFormat);
+            const dateObj = (0, dayjs_1.default)(PayTime, inputFormat);
             // 將日期物件轉換為指定格式的字串
             const newPayTime = dateObj.format(outputFormat);
-            const orderData = yield userOrderModel_1.UserOrderModel.findOne({ orderNumber: orderId });
+            const orderData = yield userOrderModel_1.UserOrderModel.findOne({ orderNumber: MerchantOrderNo });
             if (!orderData) {
                 return (0, appError_1.default)(500, '查無此訂單', next);
             }
             if (response.Status === 'SUCCESS') {
                 yield userOrderModel_1.UserOrderModel.updateOne({
-                    orderNumber: orderId
+                    orderNumber: MerchantOrderNo
                 }, {
                     $set: {
                         orderStatus: userOrderModel_1.TicketStatus.ReadyToUse,
                         'ticketList.$[].ticketStatus': userOrderModel_1.TicketStatus.ReadyToUse,
-                        payTime: newPayTime
+                        payTime: newPayTime,
+                        tradeNo: TradeNo,
+                        paymentType: PaymentType,
+                        escrowBank: EscrowBank // 付款銀行
                     },
                 });
-                (0, handleSuccess_1.default)(res, `付款完成，訂單：${orderId}`);
+                (0, handleSuccess_1.default)(res, `付款完成，訂單：${MerchantOrderNo}`);
             }
             else {
                 yield userOrderModel_1.UserOrderModel.updateOne({
-                    orderNumber: orderId
+                    orderNumber: MerchantOrderNo
                 }, {
                     $set: {
                         orderStatus: userOrderModel_1.TicketStatus.Failed,
@@ -75,7 +76,7 @@ const newebpay = {
                         payTime: newPayTime
                     },
                 });
-                (0, handleSuccess_1.default)(res, `付款失敗，訂單：${orderId}`);
+                (0, handleSuccess_1.default)(res, `付款失敗，訂單：${MerchantOrderNo}`);
             }
         });
     },

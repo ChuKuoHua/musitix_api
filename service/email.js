@@ -6,20 +6,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.mailOptions = exports.transporter = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const dayjs_1 = __importDefault(require("dayjs"));
+const { google } = require("googleapis");
+const OAuth2 = google.auth.OAuth2;
+// 建立 accessToken
+const oauth2Client = new OAuth2(process.env.CLINENTID, process.env.CLINENTSECRET, 'https://developers.google.com/oauthplayground');
+oauth2Client.setCredentials({
+    refresh_token: process.env.REFRESHTOKEN
+});
+const accessToken = oauth2Client.getAccessToken();
 const transporter = nodemailer_1.default.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    service: 'gmail',
     auth: {
-        type: "OAuth2",
+        type: 'OAuth2',
         user: process.env.ACCOUNT,
         clientId: process.env.CLINENTID,
         clientSecret: process.env.CLINENTSECRET,
         refreshToken: process.env.REFRESHTOKEN,
-        accessToken: process.env.ACCESSTOKEN,
+        accessToken: accessToken || '',
     },
     tls: {
-        rejectUnauthorized: false // 忽略憑證錯誤
+        rejectUnauthorized: false
     }
 });
 exports.transporter = transporter;

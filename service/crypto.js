@@ -22,7 +22,8 @@ function genDataChain(order) {
         + `&Email=${encodeURIComponent(order.Email)}` // 會員信箱
         + `&NotifyURL=${NotifyURL}` // 處理付款回傳結果
         // + `&ReturnURL=${ReturnURL}` // 支付完成返回商店網址
-        + `&ClientBackURL=${ClientBackURL}` // 支付取消返回商店網址
+        // 支付取消返回商店網址
+        + `&ClientBackURL=${ClientBackURL}/#/member/ticket/${order.MerchantOrderNo}`
         + `&ExpireDate=${ExpireDate ? ExpireDate : ''}`; // 付款期限
 }
 // 此加密主要是提供交易內容給予藍新金流

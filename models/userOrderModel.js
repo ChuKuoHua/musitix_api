@@ -94,7 +94,10 @@ const UserOrderSchema = new mongoose_1.Schema({
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: 'user'
     },
-    payTime: { type: Date }
+    payTime: { type: Date },
+    tradeNo: { type: String },
+    paymentType: { type: String },
+    escrowBank: { type: String },
 });
 const UserOrderModel = mongoose_1.default.model('userorder', UserOrderSchema);
 exports.UserOrderModel = UserOrderModel;
