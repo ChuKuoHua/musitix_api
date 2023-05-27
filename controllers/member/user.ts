@@ -31,8 +31,12 @@ const user = {
         isDisabled: false, // false 啟用 true 停用
         role: "user"
       }).select('+password');
+    
     if (!user) {
       return appError(401, '無此會員或已停用', next);
+    }
+    if (!user.password) {
+      return appError(401, '此會員須為 google 登入', next);
     }
 
     const auth = await bcrypt.compare(password, user.password);
@@ -324,7 +328,31 @@ const user = {
     );
 
     handleSuccess(res, "退票成功");
-  }
+  },
+  // 取得訂單QRcode狀態(只取狀態)
+  async getOrderQRcodeStatus(req: AuthRequest, res: Response, next: NextFunction) {
+    const { id } = req.params; // order id
+    const userOrderInfo: UserOrder | null = await UserOrderModel
+      .findById(id)
+      .select({
+        'ticketList.ticketStatus': 1,
+        'ticketList._id': 1
+      });
+
+    if (!userOrderInfo) {
+      return appError(400, '查無訂單', next);
+    }
+
+    handleSuccess(res, userOrderInfo);
+  },
+  // 使用者是否已設定密碼
+  async getPasswordExisted(req: AuthRequest, res: Response, next: NextFunction) {
+    const userId = req.user.id;
+    const user = await User
+      .findById(userId)
+      .select('password');
+    handleSuccess(res, !!(user?.password));
+  },
 }
 
 export default user;
