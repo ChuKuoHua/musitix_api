@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { NewbPayTradeInfo } from '../models/otherModel';
 const NotifyURL = `${process.env.BACKEND_BASE_URL}/api/activities/spgateway_notify`;
 const {
   HASHKEY,
@@ -9,7 +10,7 @@ const {
   ClientBackURL }: any = process.env;
 
 // 字串組合
-function genDataChain(order: any) {
+function genDataChain(order: NewbPayTradeInfo) {
   // 付款期限
   // 如果沒給，藍新預設為 7 天
   const ExpireDate = order?.ExpireDate
@@ -24,12 +25,13 @@ function genDataChain(order: any) {
     + `&Email=${encodeURIComponent(order.Email)}` // 會員信箱
     + `&NotifyURL=${NotifyURL}` // 處理付款回傳結果
     // + `&ReturnURL=${ReturnURL}` // 支付完成返回商店網址
-    + `&ClientBackURL=${ClientBackURL}` // 支付取消返回商店網址
+    // 支付取消返回商店網址
+    + `&ClientBackURL=${ClientBackURL}/#/order/${order.MerchantOrderNo}`
     + `&ExpireDate=${ExpireDate ? ExpireDate : ''}`; // 付款期限
 }
 
 // 此加密主要是提供交易內容給予藍新金流
-function createMpgAesEncrypt(TradeInfo: any) {
+function createMpgAesEncrypt(TradeInfo: NewbPayTradeInfo) {
   const encrypt = crypto.createCipheriv('aes256', HASHKEY, HASHIV);
   const enc = encrypt.update(genDataChain(TradeInfo), 'utf8', 'hex');
   return enc + encrypt.final('hex');
