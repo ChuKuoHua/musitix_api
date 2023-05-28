@@ -261,7 +261,7 @@ const user = {
         ItemDesc: userOrderInfo.activityInfo.title,
         Email: userOrderInfo.email
       }
-      aesEncrypt = createMpgAesEncrypt(TradeInfo)
+      aesEncrypt = createMpgAesEncrypt(TradeInfo, id)
       shaEncrypt = createMpgShaEncrypt(aesEncrypt)
     }
 

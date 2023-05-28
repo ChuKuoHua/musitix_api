@@ -10,7 +10,7 @@ const {
   ClientBackURL }: any = process.env;
 
 // 字串組合
-function genDataChain(order: NewbPayTradeInfo) {
+function genDataChain(order: NewbPayTradeInfo, orderId: string) {
   // 付款期限
   // 如果沒給，藍新預設為 7 天
   const ExpireDate = order?.ExpireDate
@@ -26,14 +26,15 @@ function genDataChain(order: NewbPayTradeInfo) {
     + `&NotifyURL=${NotifyURL}` // 處理付款回傳結果
     // + `&ReturnURL=${ReturnURL}` // 支付完成返回商店網址
     // 支付取消返回商店網址
-    + `&ClientBackURL=${ClientBackURL}/#/member/ticket/${order.MerchantOrderNo}`
+    + `&ClientBackURL=${ClientBackURL}/#/member/ticket/${orderId}`
     + `&ExpireDate=${ExpireDate ? ExpireDate : ''}`; // 付款期限
 }
 
 // 此加密主要是提供交易內容給予藍新金流
-function createMpgAesEncrypt(TradeInfo: NewbPayTradeInfo) {
+function createMpgAesEncrypt(TradeInfo: NewbPayTradeInfo, orderId: string) {
+
   const encrypt = crypto.createCipheriv('aes256', HASHKEY, HASHIV);
-  const enc = encrypt.update(genDataChain(TradeInfo), 'utf8', 'hex');
+  const enc = encrypt.update(genDataChain(TradeInfo, orderId), 'utf8', 'hex');
   return enc + encrypt.final('hex');
 }
 

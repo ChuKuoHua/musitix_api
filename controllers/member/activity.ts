@@ -71,7 +71,8 @@ const activity = {
   async searchActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { subject, minPrice, maxPrice, startDate, endDate } = req.query;
     const query: any = {
-      status: { $in: [ActivityStatus.Published, ActivityStatus.Ended, ActivityStatus.Discontinued] }
+      status: { $in: [ActivityStatus.Published] },
+      startDate: { $gte: new Date() },
     };
 
     if (subject) {
@@ -255,7 +256,7 @@ const activity = {
         ItemDesc: userOrderInfo.activityInfo.title,
         Email: userOrderInfo.email
       }
-      aesEncrypt = createMpgAesEncrypt(TradeInfo)
+      aesEncrypt = createMpgAesEncrypt(TradeInfo, id)
       shaEncrypt = createMpgShaEncrypt(aesEncrypt)
     }
     const ticketListWithId = userOrderInfo?.ticketList.map(({ _id, ...ticket }) => ({ id: _id, ...ticket }));
