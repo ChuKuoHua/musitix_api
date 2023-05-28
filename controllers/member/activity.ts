@@ -255,7 +255,7 @@ const activity = {
         ItemDesc: userOrderInfo.activityInfo.title,
         Email: userOrderInfo.email
       }
-      aesEncrypt = createMpgAesEncrypt(TradeInfo)
+      aesEncrypt = createMpgAesEncrypt(TradeInfo, id)
       shaEncrypt = createMpgShaEncrypt(aesEncrypt)
     }
     const ticketListWithId = userOrderInfo?.ticketList.map(({ _id, ...ticket }) => ({ id: _id, ...ticket }));
