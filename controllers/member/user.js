@@ -303,7 +303,7 @@ const user = {
                     ItemDesc: userOrderInfo.activityInfo.title,
                     Email: userOrderInfo.email
                 };
-                aesEncrypt = (0, crypto_1.createMpgAesEncrypt)(TradeInfo);
+                aesEncrypt = (0, crypto_1.createMpgAesEncrypt)(TradeInfo, id);
                 shaEncrypt = (0, crypto_1.createMpgShaEncrypt)(aesEncrypt);
             }
             const json = {

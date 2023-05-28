@@ -8,7 +8,7 @@ const crypto_1 = __importDefault(require("crypto"));
 const NotifyURL = `${process.env.BACKEND_BASE_URL}/api/activities/spgateway_notify`;
 const { HASHKEY, HASHIV, MerchantID, Version, RespondType, ClientBackURL } = process.env;
 // 字串組合
-function genDataChain(order) {
+function genDataChain(order, orderId) {
     // 付款期限
     // 如果沒給，藍新預設為 7 天
     const ExpireDate = order === null || order === void 0 ? void 0 : order.ExpireDate;
@@ -23,13 +23,13 @@ function genDataChain(order) {
         + `&NotifyURL=${NotifyURL}` // 處理付款回傳結果
         // + `&ReturnURL=${ReturnURL}` // 支付完成返回商店網址
         // 支付取消返回商店網址
-        + `&ClientBackURL=${ClientBackURL}/#/member/ticket/${order.MerchantOrderNo}`
+        + `&ClientBackURL=${ClientBackURL}/#/member/ticket/${orderId}`
         + `&ExpireDate=${ExpireDate ? ExpireDate : ''}`; // 付款期限
 }
 // 此加密主要是提供交易內容給予藍新金流
-function createMpgAesEncrypt(TradeInfo) {
+function createMpgAesEncrypt(TradeInfo, orderId) {
     const encrypt = crypto_1.default.createCipheriv('aes256', HASHKEY, HASHIV);
-    const enc = encrypt.update(genDataChain(TradeInfo), 'utf8', 'hex');
+    const enc = encrypt.update(genDataChain(TradeInfo, orderId), 'utf8', 'hex');
     return enc + encrypt.final('hex');
 }
 exports.createMpgAesEncrypt = createMpgAesEncrypt;

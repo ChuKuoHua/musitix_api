@@ -114,7 +114,8 @@ const activity = {
         return __awaiter(this, void 0, void 0, function* () {
             const { subject, minPrice, maxPrice, startDate, endDate } = req.query;
             const query = {
-                status: { $in: [activityModel_1.ActivityStatus.Published, activityModel_1.ActivityStatus.Ended, activityModel_1.ActivityStatus.Discontinued] }
+                status: { $in: [activityModel_1.ActivityStatus.Published] },
+                startDate: { $gte: new Date() },
             };
             if (subject) {
                 query.title = { $regex: subject, $options: 'i' };
@@ -269,7 +270,7 @@ const activity = {
                     ItemDesc: userOrderInfo.activityInfo.title,
                     Email: userOrderInfo.email
                 };
-                aesEncrypt = (0, crypto_1.createMpgAesEncrypt)(TradeInfo);
+                aesEncrypt = (0, crypto_1.createMpgAesEncrypt)(TradeInfo, id);
                 shaEncrypt = (0, crypto_1.createMpgShaEncrypt)(aesEncrypt);
             }
             const ticketListWithId = userOrderInfo === null || userOrderInfo === void 0 ? void 0 : userOrderInfo.ticketList.map((_a) => {
