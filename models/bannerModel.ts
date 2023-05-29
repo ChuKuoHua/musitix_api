@@ -1,18 +1,16 @@
 import mongoose, { Schema } from 'mongoose';
 
 export interface Banner {
-  title?: string;
+  activity_id: string;
+  activity_title: string;
   image: string;
   createdAt?: Date
 }
 
 const bannerSchema: Schema = new mongoose.Schema({
-  title: {
-    type: String,
-  },
-  image: {
-    type: String,
-  },
+  activity_id: { type: String, required: true },
+  activity_title: { type: String, required: true },
+  image: { type: String, required: true },
   createdAt: {
     type: Date,
     default: Date.now,
