@@ -25,6 +25,8 @@ import adminRouter from './routes/admin/adminManage';
 import activityManageRouter from './routes/admin/activityManage';
 import memberManageRouter from './routes/admin/memberManage';
 import bannerManageRouter from './routes/admin/bannerManage';
+import newsManageRouter from './routes/admin/newsManage';
+import orderRefundManageRouter from './routes/admin/orderRefundManage';
 import latestNews from './routes/member/latestnews';
 
 // express
@@ -54,8 +56,11 @@ app.use('/api/news', latestNews);
 // 後台
 app.use('/admin', adminRouter);
 app.use('/admin/users_mgmt', memberManageRouter);
-app.use('/admin', activityManageRouter);
+app.use('/admin/activities', activityManageRouter);
 app.use('/admin/banner_mgmt', bannerManageRouter);
+app.use('/admin/news_mgmt', newsManageRouter);
+app.use('/admin/ticket_mgmt', orderRefundManageRouter);
+
 // 404 路由
 app.use(notFound);
 
