@@ -30,9 +30,12 @@ passport.use(new GoogleStrategy({
 const router = express.Router();
 
 // 導向Google登入頁面
-router.get('/', passport.authenticate('google', {
-  scope: ['email', 'profile']
-}));
+router.get('/', function (req, res, next) {
+  (passport.authenticate('google', {
+    scope: ['email', 'profile'],
+    state: JSON.stringify(req.query)
+  }))(req, res, next);
+});
 
 // 重新導向到前台
 router.get('/redirect', handleErrorAsync(googleAuthControllers.redirect));

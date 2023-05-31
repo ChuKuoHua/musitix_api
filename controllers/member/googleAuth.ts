@@ -7,7 +7,15 @@ import { IUser, Profiles } from '../../models/usersModel';
 const googleAuth = {
   // 導向前台登入頁，帶有code資訊
   async redirect(req: Request, res: Response, next: NextFunction) {
-    res.redirect(process.env.ClientBackURL + '/#/login?googleAuthCode=' + req.query.code);
+    const { code, state } = req.query;
+    let url = process.env.ClientBackURL + '/#/login?googleAuthCode=' + code;
+    if (state) {
+      const { redirect, id } = JSON.parse(state as string);
+      if (redirect && id) {
+        url += `&redirect=${redirect}&id=${id}`;
+      }
+    }
+    res.redirect(url);
   },
 
   async loginWithGoogle(req: Request, res: Response, next: NextFunction) {
