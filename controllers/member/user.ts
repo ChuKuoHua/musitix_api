@@ -15,6 +15,7 @@ import redisClient from '../../connections/connectRedis';
 import { transporter, mailOptions } from '../../service/email';
 import { OrderStatus, TicketStatus, UserOrder, UserOrderModel } from '../../models/userOrderModel';
 import { createMpgAesEncrypt, createMpgShaEncrypt} from '../../service/crypto';
+import dayjs from 'dayjs';
 
 // 引入上傳圖片會用到的套件
 const bucket = firebaseAdmin.storage().bucket();
@@ -186,8 +187,26 @@ const user = {
       { id: user._id }, secretKey, {
       expiresIn: process.env.MAIL_EXPIRES_TIME
     });
+
+    const now = dayjs();
+    const afterOneHour = now.add(1, 'hour');
+    const time = afterOneHour.format('YYYY-MM-DD HH:mm:ss');
+    const email_title = 'musitix 重設密碼連結';
+    const email_content = `
+      <p>親愛的 musitix 會員您好</p>
+      <p>
+        您收到這封郵件是因為我們收到了您重設密碼的請求，請於 ${time} 前完成修改密碼。
+      </p>
+      <p>若您確定要重設密碼，請點擊以下連結：</p>
+      <a
+        href="${process.env.EMAILURL}${token}"
+      >${process.env.EMAILURL}${token}</a>
+      <p>此連結將會帶您前往密碼重設頁面。如果您未發出此請求，請忽略此郵件，您的密碼不會有任何更改。</p>
+      <p>謝謝！</p>
+      <p>musitix 活動主辦方</p>
+    `;
     // 建立 email 內容
-    const options = mailOptions(email, token)
+    const options = mailOptions(email, email_title, email_content);
     // email 寄信
     transporter.sendMail(options, (error, info) => {
       if (error) {
