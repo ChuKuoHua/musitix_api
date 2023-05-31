@@ -86,32 +86,35 @@ const newebpay = {
           </head>
           <body>
             <p>親愛的 musitix 會員您好</p>
-            <p>
+            <p class="lh">
               感謝您購買 Musitix 音樂活動的門票並使用我們的金流服務進行付款。
+              <br>
               我們很高興通知您，您的付款已成功完成，並確保您獲得了以下的活動票券資訊：
             </p>
             <br>
-            <p>活動名稱：${orderData.activityInfo.title}</p>
-            <p>活動名稱：${email_activityDate}</p>
-            <p>活動地址：${orderData.activityInfo.address}</p>
-            <p>活動地點：${orderData.activityInfo.location}</p>
-            <p>票券金額：${orderData.activityInfo.totalAmount}</p>
-            <p>票券數量：${orderData.activityInfo.ticketTotalCount}</p>
-            <p>交易序號：${TradeNo}</p>
-            <p>付款方式：${PaymentType}</p>
-            <p>付款日期：${email_payTime}</p>
+            <ul>
+              <li>活動名稱：${orderData.activityInfo.title}</li>
+              <li>活動名稱：${email_activityDate}</li>
+              <li>活動地址：${orderData.activityInfo.address}</li>
+              <li>活動地點：${orderData.activityInfo.location}</li>
+              <li>票券金額：${orderData.activityInfo.totalAmount}</li>
+              <li>票券數量：${orderData.activityInfo.ticketTotalCount}</li>
+              <li>交易序號：${TradeNo}</li>
+              <li>付款方式：${PaymentType}</li>
+              <li>付款日期：${email_payTime}</li>
+            </ul>
             <br>
-            <p>
+            <p class="lh">
               您的訂單編號是：${MerchantOrderNo}，請記得保留這個編號作為未來的參考。
+              <br>
+              活動當天，我們將使用 QR Code 作為入場方式，請確保您在入場時攜帶您的手機或列印出 QR Code。
+              <br>
+              您可以在進場時將 QR Code 出示給工作人員進行掃描。
             </p>
-            <p>
-              活動當天，我們將使用 QR Code 作為入場方式，請確保您在入場時攜帶您的手機或列印出 QR Code。您可以在進場時將 QR Code 出示給工作人員進行掃描。
-            </p>
-            <br>
-            <p>
+            <hr>
+            <p class="lh">
               如果您有任何疑問、變更需求或需要進一步的協助，請隨時聯繫我們的客戶服務團隊。我們將竭誠為您提供協助。
-            </p>
-            <p>
+              <br>
               Musitix 主辦方
               聯絡方式：06-1234567
               官方網站：${process.env.ClientBackURL}
