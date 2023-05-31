@@ -29,7 +29,7 @@ const newebpay = {
     // NOTE 確認交易：Notify
     const data = createMpgAesDecrypt(response.TradeInfo);
     // 取得交易內容，並查詢本地端資料庫是否有相符的訂單
-    const { MerchantOrderNo, PayTime, TradeNo, PaymentType, EscrowBank } = data.Result
+    const { MerchantOrderNo, PayTime, TradeNo, PaymentType, EscrowBank, Card6No, Card4No, PayerAccount5Code} = data.Result
     const inputFormat = 'YYYY-MM-DDTHH:mm:ss';
     const outputFormat = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
     // 將日期字串轉換為指定格式的日期物件
@@ -101,6 +101,12 @@ const newebpay = {
               <li>票券數量：${orderData.activityInfo.ticketTotalCount}</li>
               <li>交易序號：${TradeNo}</li>
               <li>付款方式：${PaymentType}</li>
+              ${PaymentType === 'CREDIT'
+                ? `<li>信用卡卡號：${Card6No}******${Card4No}</li>`
+                : PaymentType === 'WEBATM'
+                ? `<li>付款銀行：****- *****-${PayerAccount5Code}</li>`
+                : ''
+              }
               <li>付款日期：${email_payTime}</li>
             </ul>
             <br>
