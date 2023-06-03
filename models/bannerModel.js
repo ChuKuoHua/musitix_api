@@ -5,12 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const bannerSchema = new mongoose_1.default.Schema({
-    title: {
-        type: String,
-    },
-    image: {
-        type: String,
-    },
+    activity_id: { type: String, required: true },
+    activity_title: { type: String, required: true },
+    image: { type: String, required: true },
     createdAt: {
         type: Date,
         default: Date.now,
