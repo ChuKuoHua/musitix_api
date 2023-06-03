@@ -10,7 +10,7 @@ import { AuthRequest } from '../../models/otherModel';
 import { createMpgAesEncrypt, createMpgShaEncrypt } from '../../service/crypto';
 const activity = {
   async getPublishedActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const activities: Activity[] = await ActivityModel.find().lean();
+    const activities: Activity[] = await ActivityModel.find({status: ActivityStatus.Published}).lean();
     const oneMonthBefore = new Date();
     oneMonthBefore.setMonth(oneMonthBefore.getMonth() - 1);
     const currentDate = new Date();
