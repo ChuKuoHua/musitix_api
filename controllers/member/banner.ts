@@ -4,7 +4,7 @@ import BannerModel from '../../models/bannerModel';
 
 
 const banner = {
-  // 新增問題
+  // 新增 banner
   async getBanner(req: Request, res: Response, next: NextFunction) {
     const banner = await BannerModel.find().lean();
     handleSuccess(res, banner);
