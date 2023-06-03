@@ -56,7 +56,7 @@ const crypto_1 = require("../../service/crypto");
 const activity = {
     getPublishedActivities(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            const activities = yield activityModel_1.default.find().lean();
+            const activities = yield activityModel_1.default.find({ status: activityModel_1.ActivityStatus.Published }).lean();
             const oneMonthBefore = new Date();
             oneMonthBefore.setMonth(oneMonthBefore.getMonth() - 1);
             const currentDate = new Date();
