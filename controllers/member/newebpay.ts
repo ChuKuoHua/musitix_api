@@ -29,13 +29,14 @@ const newebpay = {
     // NOTE 確認交易：Notify
     const data = createMpgAesDecrypt(response.TradeInfo);
     // 取得交易內容，並查詢本地端資料庫是否有相符的訂單
-    const { MerchantOrderNo, PayTime, TradeNo, PaymentType, EscrowBank, Card6No, Card4No, PayerAccount5Code} = data.Result
+    const { MerchantOrderNo, PayTime, TradeNo, PaymentType, EscrowBank, Card6No, Card4No, PayerAccount5Code} = data.Result;
     const inputFormat = 'YYYY-MM-DDTHH:mm:ss';
     const outputFormat = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
     // 將日期字串轉換為指定格式的日期物件
     const dateObj = dayjs(PayTime, inputFormat);
     // 將日期物件轉換為指定格式的字串
     const newPayTime = dateObj.format(outputFormat);
+    let creditCard, payData;
     const orderData: any = await UserOrderModel.findOne(
       { orderNumber: MerchantOrderNo }
     ).populate({
@@ -47,6 +48,14 @@ const newebpay = {
       return appError(500, '查無此訂單', next);
     }
     if(response.Status === 'SUCCESS') {
+
+      if(PaymentType === 'CREDIT') {
+        payData = { Card6No, Card4No };
+      } else if (PaymentType === 'WEBATM') {
+        payData = {
+          escrowBank: EscrowBank
+        }
+      }
       await UserOrderModel.updateOne({
           orderNumber: MerchantOrderNo
         }, {
@@ -56,7 +65,7 @@ const newebpay = {
             payTime: newPayTime, // 付款時間
             tradeNo: TradeNo, // 藍新金流交易序號
             paymentType: PaymentType, // 交易類型
-            escrowBank: EscrowBank // 付款銀行
+            ...payData
           },
         }
       );

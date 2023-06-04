@@ -42,6 +42,8 @@ interface UserOrder {
   tradeNo?: string;
   paymentType?: string;
   escrowBank?: string;
+  Card6No?: string;
+  Card4No?: string;
 }
 
 
