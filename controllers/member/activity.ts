@@ -4,8 +4,7 @@ import ActivityModel, { Activity, ActivityStatus } from '../../models/activityMo
 import handleSuccess from '../../service/handleSuccess';
 import appError from '../../service/appError';
 import { TicketStatus, OrderStatus, Ticket, UserOrderModel, UserOrder } from '../../models/userOrderModel';
-import { generateOrderNumber, generateQRCode } from '../../service/orderService';
-import User from '../../models/usersModel';
+import { generateOrderNumber, generateQRCode, generateRandomString } from '../../service/orderService';
 import { AuthRequest } from '../../models/otherModel';
 import { createMpgAesEncrypt, createMpgShaEncrypt } from '../../service/crypto';
 const activity = {
@@ -97,7 +96,9 @@ const activity = {
 
     const activities: Activity[] = await ActivityModel.find(query).lean();
 
-    handleSuccess(res, activities);
+    const newActivities = activities.map(activity => ({ ...activity, id: (activity as any)._id }));
+
+    handleSuccess(res, newActivities);
   },
   async getActivityById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
@@ -208,14 +209,18 @@ const activity = {
       // 創建新的 ticketList
       for (let i = 0; i < headCount; i++) {
         const orderNumber = newUserOrder.orderNumber;
+        const randomCode = generateRandomString(6);
+        const ticketNumber = `${orderNumber}_${randomCode}_${newUserOrder.ticketList.length + 1}`;
         const newUserTicket: Ticket = {
           _id: new Types.ObjectId(),
           scheduleName: activity.schedules.find(schedule => schedule.scheduleName)?.scheduleName || '',
           categoryName: ticketCategory!.categoryName,
           price: ticketCategory!.price,
-          ticketNumber: `${orderNumber}_${newUserOrder.ticketList.length + 1}`,
+          ticketNumber,
           ticketStatus: TicketStatus.PendingPayment,
-          qrCode: await generateQRCode("ticketNumber"),
+          qrCode: await generateQRCode('N/A'),
+          // TODO 
+          // qrCode移到前端實作，故等前端也改好後，此處要拿掉
         };
 
         newUserOrder.ticketList.push(newUserTicket);
@@ -247,7 +252,7 @@ const activity = {
     let aesEncrypt;
     let shaEncrypt;
 
-    if(userOrderInfo) {
+    if (userOrderInfo) {
       // 藍新金流資訊
       const TradeInfo = {
         TimeStamp,
@@ -278,8 +283,8 @@ const activity = {
         ticketList: ticketListWithId
       },
       TimeStamp, // Unix 格式
-			MerchantID: process.env.MerchantID,
-			Version: process.env.Version,
+      MerchantID: process.env.MerchantID,
+      Version: process.env.Version,
       aesEncrypt,
       shaEncrypt
     }
