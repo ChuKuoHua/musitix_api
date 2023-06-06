@@ -179,7 +179,7 @@ const activityManage = {
 
     const data = await UserOrderModel.findOne({
       'ticketList.ticketNumber': ticketId
-    }, 'buyer cellPhone orderNumber address memo ticketList.$ activityInfo.title activityInfo.location activityInfo.address activityInfo.startDat activityInfo.endDate');
+    }, 'buyer cellPhone orderNumber address memo ticketList.$ activityInfo.title activityInfo.location activityInfo.address activityInfo.startDate activityInfo.endDate');
     if (data) {
       handleSuccess(res, data);
     } else {
@@ -214,6 +214,13 @@ const activityManage = {
     const { id } = req.params;
     const news = await LatestNews.deleteOne({ _id: id });
     handleSuccess(res, news)
+  },
+  // 退票內容 api
+  async getUserOrderRefund(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+    const userOrder = await UserOrderModel.findById(id, 'buyer cellPhone orderNumber address memo email activityInfo.title activityInfo.location activityInfo.address activityInfo.startDate activityInfo.endDate activityInfo.totalAmount activityInfo.ticketTotalCount');
+    
+    handleSuccess(res, userOrder)
   }
 }
 

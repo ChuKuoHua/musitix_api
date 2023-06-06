@@ -122,6 +122,8 @@ const UserOrderSchema: Schema = new Schema({
   tradeNo: { type: String },
   paymentType: { type: String },
   escrowBank: { type: String },
+  Card6No: { type: String },
+  Card4No: { type: String }
 });
 
 const UserOrderModel = mongoose.model<UserOrder>('userorder', UserOrderSchema);

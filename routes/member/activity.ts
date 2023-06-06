@@ -21,9 +21,7 @@ router.get('/schedule/:scheduleId', handleErrorAsync(activityController.getSched
 //送出訂票資訊
 router.post('/:id/booking', isAuth, handleErrorAsync(activityController.bookingActivity));
 
-// TODO 藍新金流導回頁面
-// router.post('/spgateway_return', handleErrorAsync(newebpay.newebpayReturn));
-// TODO 交易成功後，處理訂單狀態
+// 交易成功後，處理訂單狀態
 router.post('/spgateway_notify', handleErrorAsync(newebpay.newebpayNotify));
 // 訂票結果+藍新編譯資訊
 router.get('/:id/order', isAuth, handleErrorAsync(activityController.getNewebPayInfo));

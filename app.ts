@@ -54,7 +54,7 @@ app.use('/api/news', latestNews);
 // 後台
 app.use('/admin', adminRouter);
 app.use('/admin/users_mgmt', memberManageRouter);
-app.use('/admin/activities', activityManageRouter);
+app.use('/admin', activityManageRouter);
 app.use('/admin/banner_mgmt', bannerManageRouter);
 // 404 路由
 app.use(notFound);

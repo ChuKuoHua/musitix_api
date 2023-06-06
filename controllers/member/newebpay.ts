@@ -36,7 +36,7 @@ const newebpay = {
     const dateObj = dayjs(PayTime, inputFormat);
     // 將日期物件轉換為指定格式的字串
     const newPayTime = dateObj.format(outputFormat);
-    let creditCard, payData;
+    let payData;
     const orderData: any = await UserOrderModel.findOne(
       { orderNumber: MerchantOrderNo }
     ).populate({
@@ -51,10 +51,6 @@ const newebpay = {
 
       if(PaymentType === 'CREDIT') {
         payData = { Card6No, Card4No };
-      } else if (PaymentType === 'WEBATM') {
-        payData = {
-          escrowBank: EscrowBank
-        }
       }
       await UserOrderModel.updateOne({
           orderNumber: MerchantOrderNo
@@ -65,6 +61,7 @@ const newebpay = {
             payTime: newPayTime, // 付款時間
             tradeNo: TradeNo, // 藍新金流交易序號
             paymentType: PaymentType, // 交易類型
+            escrowBank: EscrowBank, // 付款銀行
             ...payData
           },
         }
@@ -85,7 +82,7 @@ const newebpay = {
               }
               li {
                 border: 1px solid #e3e3e3;
-                width: 50%;
+                width: 25%;
                 padding: 8px;
               }
               .lh {
@@ -113,7 +110,7 @@ const newebpay = {
               ${PaymentType === 'CREDIT'
                 ? `<li>信用卡卡號：${Card6No}******${Card4No}</li>`
                 : PaymentType === 'WEBATM'
-                ? `<li>付款銀行：****- *****-${PayerAccount5Code}</li>`
+                ? `<li>銀行帳號：****- *****-${PayerAccount5Code}</li>`
                 : ''
               }
               <li>付款日期：${email_payTime}</li>
