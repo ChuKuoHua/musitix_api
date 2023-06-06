@@ -25,6 +25,7 @@ import adminRouter from './routes/admin/adminManage';
 import activityManageRouter from './routes/admin/activityManage';
 import memberManageRouter from './routes/admin/memberManage';
 import bannerManageRouter from './routes/admin/bannerManage';
+import latestNews from './routes/member/latestnews';
 
 // express
 const app = express();
@@ -48,6 +49,7 @@ app.use('/api/users', userRouter);
 app.use('/api/activities', activityRouter);
 app.use('/api/questions', questionRouter);
 app.use('/api/banner_about', bannerRouter);
+app.use('/api/news', latestNews);
 
 // 後台
 app.use('/admin', adminRouter);
