@@ -9,6 +9,7 @@ import appError from '../../service/appError';
 import { imageRequest } from '../../models/otherModel';
 import ActivityService from '../../service/actionActivity';
 import { UserOrderModel, OrderStatus } from '../../models/userOrderModel';
+import LatestNews from '../../models/latestnewsModel';
 
 const bucket = firebaseAdmin.storage().bucket();
 const activityService: ActivityService = new ActivityService();
@@ -184,6 +185,35 @@ const activityManage = {
     } else {
       return appError(400, "查無此訂單", next);
     }
+  },
+  async getNewsById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+    const news = await LatestNews.findById(id);
+    if (news) {
+      handleSuccess(res, news)
+    } else {
+      return appError(404, "找不到此則消息", next);
+    }
+  },
+  async getAllNews(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const news = await LatestNews.find();
+    handleSuccess(res, news)
+  },
+  async createNews(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { title, content, messageTypes} = req.body;
+    const news = await LatestNews.create({title, content, messageTypes});
+    handleSuccess(res, news)
+  },
+  async updateNews(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+    const { title, content } = req.body;
+    const news = await LatestNews.updateOne({ _id: id }, { title, content });
+    handleSuccess(res, news)
+  },
+  async deleteNews(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+    const news = await LatestNews.deleteOne({ _id: id });
+    handleSuccess(res, news)
   }
 }
 

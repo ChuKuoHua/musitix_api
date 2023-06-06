@@ -30,4 +30,20 @@ router.get('/:id', isAdmin, handleErrorAsync(activityManage.getActivityById));
 
 // 活動入場 qrcode
 router.post('/:ticketId/qrcode', isAdmin, handleErrorAsync(activityManage.admittanceQrcode));
+
+// 最新消息資料(內容) by id
+router.get('/news_mgmt/news/:id', handleErrorAsync(activityManage.getNewsById));
+
+// 最新消息資料(內容)
+router.get('/news_mgmt/news_list', handleErrorAsync(activityManage.getAllNews));
+
+// 新增 最新消息
+router.post('/news_mgmt/news', handleErrorAsync(activityManage.createNews));
+
+// 編輯 最新消息
+router.patch('/news_mgmt/news/:id', handleErrorAsync(activityManage.updateNews));
+
+// 刪除 最新消息
+router.delete('/news_mgmt/news/:id', handleErrorAsync(activityManage.deleteNews));
+
 export default router;
