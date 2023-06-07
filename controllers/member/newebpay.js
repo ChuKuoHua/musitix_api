@@ -49,6 +49,7 @@ const newebpay = {
             const dateObj = (0, dayjs_1.default)(PayTime, inputFormat);
             // 將日期物件轉換為指定格式的字串
             const newPayTime = dateObj.format(outputFormat);
+            let payData;
             const orderData = yield userOrderModel_1.UserOrderModel.findOne({ orderNumber: MerchantOrderNo }).populate({
                 path: 'userId',
                 select: 'email'
@@ -57,17 +58,13 @@ const newebpay = {
                 return (0, appError_1.default)(500, '查無此訂單', next);
             }
             if (response.Status === 'SUCCESS') {
+                if (PaymentType === 'CREDIT') {
+                    payData = { Card6No, Card4No };
+                }
                 yield userOrderModel_1.UserOrderModel.updateOne({
                     orderNumber: MerchantOrderNo
                 }, {
-                    $set: {
-                        orderStatus: userOrderModel_1.TicketStatus.ReadyToUse,
-                        'ticketList.$[].ticketStatus': userOrderModel_1.TicketStatus.ReadyToUse,
-                        payTime: newPayTime,
-                        tradeNo: TradeNo,
-                        paymentType: PaymentType,
-                        escrowBank: EscrowBank // 付款銀行
-                    },
+                    $set: Object.assign({ orderStatus: userOrderModel_1.TicketStatus.ReadyToUse, 'ticketList.$[].ticketStatus': userOrderModel_1.TicketStatus.ReadyToUse, payTime: newPayTime, tradeNo: TradeNo, paymentType: PaymentType, escrowBank: EscrowBank }, payData),
                 });
                 // 付款完成後寄信
                 const userEmail = (_a = orderData === null || orderData === void 0 ? void 0 : orderData.userId) === null || _a === void 0 ? void 0 : _a.email;
@@ -84,7 +81,7 @@ const newebpay = {
               }
               li {
                 border: 1px solid #e3e3e3;
-                width: 50%;
+                width: 25%;
                 padding: 8px;
               }
               .lh {
@@ -112,7 +109,7 @@ const newebpay = {
               ${PaymentType === 'CREDIT'
                     ? `<li>信用卡卡號：${Card6No}******${Card4No}</li>`
                     : PaymentType === 'WEBATM'
-                        ? `<li>付款銀行：****- *****-${PayerAccount5Code}</li>`
+                        ? `<li>銀行帳號：****- *****-${PayerAccount5Code}</li>`
                         : ''}
               <li>付款日期：${email_payTime}</li>
             </ul>

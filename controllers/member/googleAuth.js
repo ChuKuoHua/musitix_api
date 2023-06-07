@@ -18,7 +18,15 @@ const googleAuth = {
     // 導向前台登入頁，帶有code資訊
     redirect(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            res.redirect(process.env.ClientBackURL + '/#/login?googleAuthCode=' + req.query.code);
+            const { code, state } = req.query;
+            let url = process.env.ClientBackURL + '/#/login?googleAuthCode=' + code;
+            if (state) {
+                const { redirect, id } = JSON.parse(state);
+                if (redirect && id) {
+                    url += `&redirect=${redirect}&id=${id}`;
+                }
+            }
+            res.redirect(url);
         });
     },
     loginWithGoogle(req, res, next) {

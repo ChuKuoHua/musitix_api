@@ -133,7 +133,8 @@ const activity = {
                 query.endDate = { $lte: new Date(endDate.toString()) };
             }
             const activities = yield activityModel_1.default.find(query).lean();
-            (0, handleSuccess_1.default)(res, activities);
+            const newActivities = activities.map(activity => (Object.assign(Object.assign({}, activity), { id: activity._id })));
+            (0, handleSuccess_1.default)(res, newActivities);
         });
     },
     getActivityById(req, res, next) {
@@ -225,14 +226,18 @@ const activity = {
                 // 創建新的 ticketList
                 for (let i = 0; i < headCount; i++) {
                     const orderNumber = newUserOrder.orderNumber;
+                    const randomCode = (0, orderService_1.generateRandomString)(6);
+                    const ticketNumber = `${orderNumber}_${randomCode}_${newUserOrder.ticketList.length + 1}`;
                     const newUserTicket = {
                         _id: new mongoose_1.Types.ObjectId(),
                         scheduleName: ((_a = activity.schedules.find(schedule => schedule.scheduleName)) === null || _a === void 0 ? void 0 : _a.scheduleName) || '',
                         categoryName: ticketCategory.categoryName,
                         price: ticketCategory.price,
-                        ticketNumber: `${orderNumber}_${newUserOrder.ticketList.length + 1}`,
+                        ticketNumber,
                         ticketStatus: userOrderModel_1.TicketStatus.PendingPayment,
-                        qrCode: yield (0, orderService_1.generateQRCode)("ticketNumber"),
+                        qrCode: yield (0, orderService_1.generateQRCode)('N/A'),
+                        // TODO 
+                        // qrCode移到前端實作，故等前端也改好後，此處要拿掉
                     };
                     newUserOrder.ticketList.push(newUserTicket);
                     totalAmount += ticketCategory.price;

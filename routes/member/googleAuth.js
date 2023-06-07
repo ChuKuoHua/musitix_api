@@ -42,9 +42,12 @@ passport_1.default.use(new passport_google_oauth20_1.Strategy({
 }));
 const router = express_1.default.Router();
 // 導向Google登入頁面
-router.get('/', passport_1.default.authenticate('google', {
-    scope: ['email', 'profile']
-}));
+router.get('/', function (req, res, next) {
+    (passport_1.default.authenticate('google', {
+        scope: ['email', 'profile'],
+        state: JSON.stringify(req.query)
+    }))(req, res, next);
+});
 // 重新導向到前台
 router.get('/redirect', (0, handleErrorAsync_1.default)(googleAuth_1.default.redirect));
 // Google登入callback

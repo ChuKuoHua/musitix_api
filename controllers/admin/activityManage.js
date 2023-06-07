@@ -42,6 +42,7 @@ const handleSuccess_1 = __importDefault(require("../../service/handleSuccess"));
 const appError_1 = __importDefault(require("../../service/appError"));
 const actionActivity_1 = __importDefault(require("../../service/actionActivity"));
 const userOrderModel_1 = require("../../models/userOrderModel");
+const latestnewsModel_1 = __importDefault(require("../../models/latestnewsModel"));
 const bucket = firebase_1.default.storage().bucket();
 const activityService = new actionActivity_1.default();
 const activityManage = {
@@ -204,13 +205,61 @@ const activityManage = {
             });
             const data = yield userOrderModel_1.UserOrderModel.findOne({
                 'ticketList.ticketNumber': ticketId
-            }, 'buyer cellPhone orderNumber address memo ticketList.$ activityInfo.title activityInfo.location activityInfo.address activityInfo.startDat activityInfo.endDate');
+            }, 'buyer cellPhone orderNumber address memo ticketList.$ activityInfo.title activityInfo.location activityInfo.address activityInfo.startDate activityInfo.endDate');
             if (data) {
                 (0, handleSuccess_1.default)(res, data);
             }
             else {
                 return (0, appError_1.default)(400, "查無此訂單", next);
             }
+        });
+    },
+    getNewsById(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            const news = yield latestnewsModel_1.default.findById(id);
+            if (news) {
+                (0, handleSuccess_1.default)(res, news);
+            }
+            else {
+                return (0, appError_1.default)(404, "找不到此則消息", next);
+            }
+        });
+    },
+    getAllNews(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const news = yield latestnewsModel_1.default.find();
+            (0, handleSuccess_1.default)(res, news);
+        });
+    },
+    createNews(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { title, content, messageTypes } = req.body;
+            const news = yield latestnewsModel_1.default.create({ title, content, messageTypes });
+            (0, handleSuccess_1.default)(res, news);
+        });
+    },
+    updateNews(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            const { title, content } = req.body;
+            const news = yield latestnewsModel_1.default.updateOne({ _id: id }, { title, content });
+            (0, handleSuccess_1.default)(res, news);
+        });
+    },
+    deleteNews(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            const news = yield latestnewsModel_1.default.deleteOne({ _id: id });
+            (0, handleSuccess_1.default)(res, news);
+        });
+    },
+    // 退票內容 api
+    getUserOrderRefund(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            const userOrder = yield userOrderModel_1.UserOrderModel.findById(id, 'buyer cellPhone orderNumber address memo email activityInfo.title activityInfo.location activityInfo.address activityInfo.startDate activityInfo.endDate activityInfo.totalAmount activityInfo.ticketTotalCount');
+            (0, handleSuccess_1.default)(res, userOrder);
         });
     }
 };

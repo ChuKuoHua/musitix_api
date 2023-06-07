@@ -19,9 +19,7 @@ router.get('/:id', (0, handleErrorAsync_1.default)(activity_1.default.getActivit
 router.get('/schedule/:scheduleId', (0, handleErrorAsync_1.default)(activity_1.default.getScheduleInfoById));
 //送出訂票資訊
 router.post('/:id/booking', auth_1.isAuth, (0, handleErrorAsync_1.default)(activity_1.default.bookingActivity));
-// TODO 藍新金流導回頁面
-// router.post('/spgateway_return', handleErrorAsync(newebpay.newebpayReturn));
-// TODO 交易成功後，處理訂單狀態
+// 交易成功後，處理訂單狀態
 router.post('/spgateway_notify', (0, handleErrorAsync_1.default)(newebpay_1.default.newebpayNotify));
 // 訂票結果+藍新編譯資訊
 router.get('/:id/order', auth_1.isAuth, (0, handleErrorAsync_1.default)(activity_1.default.getNewebPayInfo));

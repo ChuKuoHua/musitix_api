@@ -25,6 +25,9 @@ const adminManage_1 = __importDefault(require("./routes/admin/adminManage"));
 const activityManage_1 = __importDefault(require("./routes/admin/activityManage"));
 const memberManage_1 = __importDefault(require("./routes/admin/memberManage"));
 const bannerManage_1 = __importDefault(require("./routes/admin/bannerManage"));
+const newsManage_1 = __importDefault(require("./routes/admin/newsManage"));
+const orderRefundManage_1 = __importDefault(require("./routes/admin/orderRefundManage"));
+const latestnews_1 = __importDefault(require("./routes/member/latestnews"));
 // express
 const app = (0, express_1.default)();
 // view engine setup
@@ -44,11 +47,14 @@ app.use('/api/users', user_1.default);
 app.use('/api/activities', activity_1.default);
 app.use('/api/questions', question_1.default);
 app.use('/api/banner_about', banner_1.default);
+app.use('/api/news', latestnews_1.default);
 // 後台
 app.use('/admin', adminManage_1.default);
 app.use('/admin/users_mgmt', memberManage_1.default);
 app.use('/admin/activities', activityManage_1.default);
 app.use('/admin/banner_mgmt', bannerManage_1.default);
+app.use('/admin/news_mgmt', newsManage_1.default);
+app.use('/admin/ticket_mgmt', orderRefundManage_1.default);
 // 404 路由
 app.use(notFound_1.default);
 // 錯誤處理
