@@ -30,4 +30,5 @@ router.get('/:id', isAdmin, handleErrorAsync(activityManage.getActivityById));
 
 // 活動入場 qrcode
 router.post('/:ticketId/qrcode', isAdmin, handleErrorAsync(activityManage.admittanceQrcode));
+
 export default router;

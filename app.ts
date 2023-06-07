@@ -25,6 +25,9 @@ import adminRouter from './routes/admin/adminManage';
 import activityManageRouter from './routes/admin/activityManage';
 import memberManageRouter from './routes/admin/memberManage';
 import bannerManageRouter from './routes/admin/bannerManage';
+import newsManageRouter from './routes/admin/newsManage';
+import orderRefundManageRouter from './routes/admin/orderRefundManage';
+import latestNews from './routes/member/latestnews';
 
 // express
 const app = express();
@@ -48,12 +51,16 @@ app.use('/api/users', userRouter);
 app.use('/api/activities', activityRouter);
 app.use('/api/questions', questionRouter);
 app.use('/api/banner_about', bannerRouter);
+app.use('/api/news', latestNews);
 
 // 後台
 app.use('/admin', adminRouter);
 app.use('/admin/users_mgmt', memberManageRouter);
 app.use('/admin/activities', activityManageRouter);
 app.use('/admin/banner_mgmt', bannerManageRouter);
+app.use('/admin/news_mgmt', newsManageRouter);
+app.use('/admin/ticket_mgmt', orderRefundManageRouter);
+
 // 404 路由
 app.use(notFound);
 
