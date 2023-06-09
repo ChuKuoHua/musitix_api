@@ -16,6 +16,10 @@ const DB: string = dataBase!.replace(
 )
 
 // 連接資料庫
-mongoose.connect(DB)
-  .then(() => console.log('資料庫連線成功'))
-  .catch((error: Error) => console.log(error));
+if(process.env.NODE_ENV !== 'test') {
+  mongoose.connect(DB)
+    .then(() => console.log('資料庫連線成功'))
+    .catch((error: Error) => console.log(error));
+} else {
+  console.log('test Database');
+}

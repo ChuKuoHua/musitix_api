@@ -170,6 +170,8 @@ const admin = {
       newPassword = await bcrypt.hash(newPassword, 12);
       await Host.findByIdAndUpdate(req.admin.id, { password: newPassword });
       handleSuccess(res, '密碼已修改');
+    } else {
+      return appError(500, '無此 id', next);
     }
   },
   // 主辦刪除
