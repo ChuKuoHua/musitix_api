@@ -82,7 +82,7 @@ describe('banner 管理', () => {
     ]
   }
   test("新增活動", async () => {
-    const { statusCode, body } = await supertest(app)
+    const { statusCode } = await supertest(app)
     .post(`/admin/activities`)
     .set('Authorization', `Bearer ${token}`)
     .send(act)

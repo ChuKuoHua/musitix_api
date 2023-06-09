@@ -1,7 +1,6 @@
 import supertest from 'supertest'
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
-import FormData from "form-data";
 const app = require('../../app');
 
 describe('admin 帳號', () => {
