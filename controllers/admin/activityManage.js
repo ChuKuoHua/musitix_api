@@ -182,6 +182,7 @@ const activityManage = {
     admittanceQrcode(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const { ticketId } = req.params;
+            // 判斷票券是否已使用
             const ticketStatus = yield userOrderModel_1.UserOrderModel.findOne({
                 "ticketList": {
                     $elemMatch: {
@@ -193,16 +194,40 @@ const activityManage = {
             if (ticketStatus) {
                 return (0, appError_1.default)(200, "票券已使用", next);
             }
+            // 檢查訂單內所有票券狀態
+            let ticketNotUse = [];
+            let setStatus = {};
+            const orderData = yield userOrderModel_1.UserOrderModel.findOne({
+                "ticketList": {
+                    $elemMatch: {
+                        "ticketNumber": ticketId
+                    }
+                }
+            });
+            if (orderData) {
+                ticketNotUse = orderData.ticketList.filter(item => item.ticketStatus !== 3);
+            }
+            // 訂單票券如果剩最後一筆就同時改訂單狀態
+            if (ticketNotUse.length <= 1) {
+                setStatus = {
+                    'orderStatus': userOrderModel_1.OrderStatus.Used,
+                    'ticketList.$[elem].ticketStatus': userOrderModel_1.OrderStatus.Used
+                };
+            }
+            else {
+                setStatus = {
+                    'ticketList.$[elem].ticketStatus': userOrderModel_1.OrderStatus.Used
+                };
+            }
+            // 更新狀態
             yield userOrderModel_1.UserOrderModel.updateOne({
                 'ticketList.ticketNumber': ticketId
             }, {
-                $set: {
-                    'orderStatus': userOrderModel_1.OrderStatus.Used,
-                    'ticketList.$[elem].ticketStatus': userOrderModel_1.OrderStatus.Used
-                },
+                $set: Object.assign({}, setStatus),
             }, {
                 arrayFilters: [{ "elem.ticketNumber": ticketId }]
             });
+            // 取得訂單內容
             const data = yield userOrderModel_1.UserOrderModel.findOne({
                 'ticketList.ticketNumber': ticketId
             }, 'buyer cellPhone orderNumber address memo ticketList.$ activityInfo.title activityInfo.location activityInfo.address activityInfo.startDate activityInfo.endDate');
