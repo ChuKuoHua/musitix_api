@@ -1,8 +1,8 @@
 # Musitix API
-Release: v1.4.1
+Release: v1.4.2
 Node: 建議 v16 以上
 
-2023-06-07
+2023-06-10
 
 檔案
 - bin // 開啟伺服器
