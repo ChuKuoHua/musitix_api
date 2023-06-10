@@ -153,6 +153,7 @@ const activityManage = {
   },
   async admittanceQrcode(req: Request, res: Response, next: NextFunction) {
     const { ticketId } = req.params;
+    // 判斷票券是否已使用
     const ticketStatus = await UserOrderModel.findOne({
       "ticketList": {
         $elemMatch: {
@@ -165,18 +166,41 @@ const activityManage = {
     if(ticketStatus) {
       return appError(200, "票券已使用", next);
     }
-
+    // 檢查訂單內所有票券狀態
+    let ticketNotUse: any[] = []
+    let setStatus: Object = {}
+    const orderData = await UserOrderModel.findOne({
+      "ticketList": {
+        $elemMatch: {
+          "ticketNumber": ticketId
+        }
+      }
+    });
+    if(orderData) {
+      ticketNotUse = orderData.ticketList.filter(item => item.ticketStatus !== 3)
+    }
+    // 訂單票券如果剩最後一筆就同時改訂單狀態
+    if(ticketNotUse.length <= 1) {
+      setStatus = {
+        'orderStatus': OrderStatus.Used,
+        'ticketList.$[elem].ticketStatus': OrderStatus.Used
+      }
+    } else {
+      setStatus = {
+        'ticketList.$[elem].ticketStatus': OrderStatus.Used
+      }
+    }
+    // 更新狀態
     await UserOrderModel.updateOne({
       'ticketList.ticketNumber': ticketId
     }, {
       $set: {
-        'orderStatus': OrderStatus.Used,
-        'ticketList.$[elem].ticketStatus': OrderStatus.Used
+        ...setStatus
       },
     },{ 
       arrayFilters: [{ "elem.ticketNumber": ticketId }]
     });
-
+    // 取得訂單內容
     const data = await UserOrderModel.findOne({
       'ticketList.ticketNumber': ticketId
     }, 'buyer cellPhone orderNumber address memo ticketList.$ activityInfo.title activityInfo.location activityInfo.address activityInfo.startDate activityInfo.endDate');
