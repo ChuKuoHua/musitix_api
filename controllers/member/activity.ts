@@ -9,7 +9,8 @@ import { AuthRequest } from '../../models/otherModel';
 import { createMpgAesEncrypt, createMpgShaEncrypt } from '../../service/crypto';
 const activity = {
   async getPublishedActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const activities: Activity[] = await ActivityModel.find({status: ActivityStatus.Published}).lean();
+    const activities: Activity[] = await ActivityModel.find({status: ActivityStatus.Published})
+      .sort('-startDate').lean();
     const oneMonthBefore = new Date();
     oneMonthBefore.setMonth(oneMonthBefore.getMonth() - 1);
     const currentDate = new Date();
@@ -28,7 +29,7 @@ const activity = {
       ticketCount: activity.schedules.reduce((total, schedule) => {
         return total + schedule.ticketCategories.reduce((sum, category) => sum + category.totalQuantity, 0);
       }, 0)
-    }));
+    })).slice(0, 6);
 
     const upcomingActivities = activities.filter(activity => {
       const saleStartDate = new Date(activity.saleStartDate);
@@ -43,7 +44,7 @@ const activity = {
       maxPrice: activity.maxPrice,
       mainImageUrl: activity.mainImageUrl,
       saleStartDate: activity.saleStartDate
-    }));
+    })).slice(0, 6);
 
     const recentActivities = activities.filter(activity => {
       const startDate = new Date(activity.startDate);
@@ -57,7 +58,7 @@ const activity = {
       minPrice: activity.minPrice,
       maxPrice: activity.maxPrice,
       mainImageUrl: activity.mainImageUrl
-    }));
+    })).slice(0, 6);
 
     const response = {
       hotActivities,
