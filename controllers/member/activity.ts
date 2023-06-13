@@ -9,15 +9,17 @@ import { AuthRequest } from '../../models/otherModel';
 import { createMpgAesEncrypt, createMpgShaEncrypt } from '../../service/crypto';
 const activity = {
   async getPublishedActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const activities: Activity[] = await ActivityModel.find({status: ActivityStatus.Published})
-      .sort('-startDate').lean();
+    const activities: Activity[] = await ActivityModel.find({status: ActivityStatus.Published}).lean();
     const oneMonthBefore = new Date();
     oneMonthBefore.setMonth(oneMonthBefore.getMonth() - 1);
     const currentDate = new Date();
     const oneMonthFromNow = new Date();
     oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
 
-    const hotActivities = activities.map(activity => ({
+    const hotActivities = activities.filter(activity => {
+      const startDate = new Date(activity.startDate);
+      return startDate >= currentDate;
+    }).map(activity => ({
       id: (activity as any)._id.toString(),
       title: activity.title,
       sponsorName: activity.sponsorName,
@@ -58,7 +60,8 @@ const activity = {
       minPrice: activity.minPrice,
       maxPrice: activity.maxPrice,
       mainImageUrl: activity.mainImageUrl
-    })).slice(0, 6);
+    })).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+    .slice(0, 6);
 
     const response = {
       hotActivities,
