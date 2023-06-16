@@ -9,15 +9,17 @@ import { AuthRequest } from '../../models/otherModel';
 import { createMpgAesEncrypt, createMpgShaEncrypt } from '../../service/crypto';
 const activity = {
   async getPublishedActivities(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const activities: Activity[] = await ActivityModel.find({status: ActivityStatus.Published})
-      .sort('-startDate').lean();
+    const activities: Activity[] = await ActivityModel.find({status: ActivityStatus.Published}).lean();
     const oneMonthBefore = new Date();
     oneMonthBefore.setMonth(oneMonthBefore.getMonth() - 1);
     const currentDate = new Date();
     const oneMonthFromNow = new Date();
     oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
 
-    const hotActivities = activities.map(activity => ({
+    const hotActivities = activities.filter(activity => {
+      const startDate = new Date(activity.startDate);
+      return startDate >= currentDate;
+    }).map(activity => ({
       id: (activity as any)._id.toString(),
       title: activity.title,
       sponsorName: activity.sponsorName,
@@ -32,8 +34,8 @@ const activity = {
     })).slice(0, 6);
 
     const upcomingActivities = activities.filter(activity => {
-      const saleStartDate = new Date(activity.saleStartDate);
-      return currentDate <= saleStartDate && saleStartDate <= oneMonthFromNow;
+      const saleEndDate = new Date(activity.saleEndDate);
+      return saleEndDate <= oneMonthFromNow && currentDate <= saleEndDate
     }).map(activity => ({
       id: (activity as any)._id.toString(),
       title: activity.title,
@@ -58,7 +60,8 @@ const activity = {
       minPrice: activity.minPrice,
       maxPrice: activity.maxPrice,
       mainImageUrl: activity.mainImageUrl
-    })).slice(0, 6);
+    })).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+    .slice(0, 6);
 
     const response = {
       hotActivities,
@@ -79,13 +82,15 @@ const activity = {
       query.title = { $regex: subject, $options: 'i' };
     }
 
-    if (minPrice) {
-      query.minPrice = { $gte: Number(minPrice) };
+    if (minPrice && maxPrice) {
+      query.minPrice = { $gte: Number(minPrice), $lte: Number(maxPrice) };
+    } else if (minPrice) {
+      query.minPrice = { $gt: Number(minPrice) };
     }
 
-    if (maxPrice) {
-      query.maxPrice = { $lte: Number(maxPrice) };
-    }
+    // if (maxPrice) {
+    //   query.minPrice = { $lte: Number(maxPrice) };
+    // }
 
     if (startDate) {
       query.startDate = { $gte: new Date(startDate.toString()) };
@@ -95,7 +100,7 @@ const activity = {
       query.endDate = { $lte: new Date(endDate.toString()) };
     }
 
-    const activities: Activity[] = await ActivityModel.find(query).lean();
+    const activities: Activity[] = await ActivityModel.find(query).sort('-startDate').lean();
 
     const newActivities = activities.map(activity => ({ ...activity, id: (activity as any)._id }));
 
@@ -242,7 +247,7 @@ const activity = {
     const result = {
       orderId: orderId.toString(),
     }
-
+    
     handleSuccess(res, result);
   },
   async getNewebPayInfo(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
