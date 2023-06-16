@@ -100,7 +100,7 @@ const activity = {
       query.endDate = { $lte: new Date(endDate.toString()) };
     }
 
-    const activities: Activity[] = await ActivityModel.find(query).lean();
+    const activities: Activity[] = await ActivityModel.find(query).sort('-startDate').lean();
 
     const newActivities = activities.map(activity => ({ ...activity, id: (activity as any)._id }));
 
