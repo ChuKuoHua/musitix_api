@@ -79,8 +79,8 @@ const activity = {
                 }, 0)
             })).slice(0, 6);
             const upcomingActivities = activities.filter(activity => {
-                const saleEndDate = new Date(activity.saleEndDate);
-                return saleEndDate <= oneMonthFromNow && currentDate <= saleEndDate;
+                const saleStartDate = new Date(activity.saleStartDate);
+                return saleStartDate <= oneMonthFromNow && currentDate <= saleStartDate;
             }).map(activity => ({
                 id: activity._id.toString(),
                 title: activity.title,
