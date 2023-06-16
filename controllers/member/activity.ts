@@ -34,8 +34,8 @@ const activity = {
     })).slice(0, 6);
 
     const upcomingActivities = activities.filter(activity => {
-      const saleStartDate = new Date(activity.saleStartDate);
-      return currentDate <= saleStartDate && saleStartDate <= oneMonthFromNow;
+      const saleEndDate = new Date(activity.saleEndDate);
+      return saleEndDate <= oneMonthFromNow && currentDate <= saleEndDate
     }).map(activity => ({
       id: (activity as any)._id.toString(),
       title: activity.title,
@@ -82,13 +82,15 @@ const activity = {
       query.title = { $regex: subject, $options: 'i' };
     }
 
-    if (minPrice) {
-      query.minPrice = { $gte: Number(minPrice) };
+    if (minPrice && maxPrice) {
+      query.minPrice = { $gte: Number(minPrice), $lte: Number(maxPrice) };
+    } else if (minPrice) {
+      query.minPrice = { $gt: Number(minPrice) };
     }
 
-    if (maxPrice) {
-      query.maxPrice = { $lte: Number(maxPrice) };
-    }
+    // if (maxPrice) {
+    //   query.minPrice = { $lte: Number(maxPrice) };
+    // }
 
     if (startDate) {
       query.startDate = { $gte: new Date(startDate.toString()) };
@@ -245,7 +247,7 @@ const activity = {
     const result = {
       orderId: orderId.toString(),
     }
-
+    
     handleSuccess(res, result);
   },
   async getNewebPayInfo(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
