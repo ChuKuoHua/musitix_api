@@ -279,6 +279,15 @@ const activityManage = {
             (0, handleSuccess_1.default)(res, news);
         });
     },
+    // 待審核的退票訂單列表
+    getUserOrderRefundList(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userOrder = yield userOrderModel_1.UserOrderModel.find({
+                orderStatus: userOrderModel_1.OrderStatus.InReview
+            }, '_id orderNumber buyer cellPhone email activityInfo.title').lean();
+            (0, handleSuccess_1.default)(res, userOrder);
+        });
+    },
     // 退票內容 api
     getUserOrderRefund(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {

@@ -38,7 +38,7 @@ const memberManage = {
                     { email: { $regex: q } },
                 ],
                 role: "user",
-                isDisabled: disabled
+                isDisabled: isDisabled
             }).sort(sortAt)
                 .skip((pageNum - 1) * limitNum)
                 .limit(limitNum).lean();

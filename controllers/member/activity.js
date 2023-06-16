@@ -62,7 +62,10 @@ const activity = {
             const currentDate = new Date();
             const oneMonthFromNow = new Date();
             oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
-            const hotActivities = activities.map(activity => ({
+            const hotActivities = activities.filter(activity => {
+                const startDate = new Date(activity.startDate);
+                return startDate >= currentDate;
+            }).map(activity => ({
                 id: activity._id.toString(),
                 title: activity.title,
                 sponsorName: activity.sponsorName,
@@ -74,10 +77,10 @@ const activity = {
                 ticketCount: activity.schedules.reduce((total, schedule) => {
                     return total + schedule.ticketCategories.reduce((sum, category) => sum + category.totalQuantity, 0);
                 }, 0)
-            }));
+            })).slice(0, 6);
             const upcomingActivities = activities.filter(activity => {
-                const saleStartDate = new Date(activity.saleStartDate);
-                return currentDate <= saleStartDate && saleStartDate <= oneMonthFromNow;
+                const saleEndDate = new Date(activity.saleEndDate);
+                return saleEndDate <= oneMonthFromNow && currentDate <= saleEndDate;
             }).map(activity => ({
                 id: activity._id.toString(),
                 title: activity.title,
@@ -88,7 +91,7 @@ const activity = {
                 maxPrice: activity.maxPrice,
                 mainImageUrl: activity.mainImageUrl,
                 saleStartDate: activity.saleStartDate
-            }));
+            })).slice(0, 6);
             const recentActivities = activities.filter(activity => {
                 const startDate = new Date(activity.startDate);
                 return startDate >= currentDate && startDate <= oneMonthFromNow;
@@ -101,7 +104,8 @@ const activity = {
                 minPrice: activity.minPrice,
                 maxPrice: activity.maxPrice,
                 mainImageUrl: activity.mainImageUrl
-            }));
+            })).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+                .slice(0, 6);
             const response = {
                 hotActivities,
                 upcomingActivities,
@@ -120,19 +124,22 @@ const activity = {
             if (subject) {
                 query.title = { $regex: subject, $options: 'i' };
             }
-            if (minPrice) {
-                query.minPrice = { $gte: Number(minPrice) };
+            if (minPrice && maxPrice) {
+                query.minPrice = { $gte: Number(minPrice), $lte: Number(maxPrice) };
             }
-            if (maxPrice) {
-                query.maxPrice = { $lte: Number(maxPrice) };
+            else if (minPrice) {
+                query.minPrice = { $gt: Number(minPrice) };
             }
+            // if (maxPrice) {
+            //   query.minPrice = { $lte: Number(maxPrice) };
+            // }
             if (startDate) {
                 query.startDate = { $gte: new Date(startDate.toString()) };
             }
             if (endDate) {
                 query.endDate = { $lte: new Date(endDate.toString()) };
             }
-            const activities = yield activityModel_1.default.find(query).lean();
+            const activities = yield activityModel_1.default.find(query).sort('-startDate').lean();
             const newActivities = activities.map(activity => (Object.assign(Object.assign({}, activity), { id: activity._id })));
             (0, handleSuccess_1.default)(res, newActivities);
         });

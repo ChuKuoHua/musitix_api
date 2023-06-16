@@ -359,15 +359,21 @@ const user = {
             if (!existingUserOrder) {
                 return (0, appError_1.default)(400, '查無此訂單', next);
             }
-            // 更新所有票券的狀態為 "Refunded"
+            const ticketStatus = (existingUserOrder.orderStatus === userOrderModel_1.OrderStatus.PendingPayment)
+                ? userOrderModel_1.TicketStatus.Refunded
+                : userOrderModel_1.TicketStatus.InReview;
+            const orderStatus = (existingUserOrder.orderStatus === userOrderModel_1.OrderStatus.PendingPayment)
+                ? userOrderModel_1.OrderStatus.Refunded
+                : userOrderModel_1.OrderStatus.InReview;
+            // 更新所有票券的狀態為 "Refunded" 或 "InReview"
             existingUserOrder.ticketList.forEach(ticket => {
-                ticket.ticketStatus = userOrderModel_1.TicketStatus.Refunded;
+                ticket.ticketStatus = ticketStatus;
             });
             // 檢查是否所有票券都已退票
-            const allTicketsRefunded = existingUserOrder.ticketList.every(ticket => ticket.ticketStatus === userOrderModel_1.TicketStatus.Refunded);
-            // 如果所有票券都已退票，則將訂單狀態更新為 "Refunded"
+            const allTicketsRefunded = existingUserOrder.ticketList.every(ticket => (ticket.ticketStatus === userOrderModel_1.TicketStatus.Refunded || ticket.ticketStatus === userOrderModel_1.TicketStatus.InReview));
+            // 如果所有票券都已退票，則將訂單狀態更新為 "Refunded" 或 "InReview"
             if (allTicketsRefunded) {
-                existingUserOrder.orderStatus = userOrderModel_1.OrderStatus.Refunded;
+                existingUserOrder.orderStatus = orderStatus;
             }
             // 更新訂單和票券狀態
             yield userOrderModel_1.UserOrderModel.updateOne({ _id: id }, {
@@ -376,7 +382,7 @@ const user = {
                     ticketList: existingUserOrder.ticketList
                 }
             });
-            (0, handleSuccess_1.default)(res, "退票成功");
+            (0, handleSuccess_1.default)(res, "成功");
         });
     },
     // 取得訂單QRcode狀態(只取狀態)
