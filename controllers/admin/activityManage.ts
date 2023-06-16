@@ -239,6 +239,14 @@ const activityManage = {
     const news = await LatestNews.deleteOne({ _id: id });
     handleSuccess(res, news)
   },
+  // 待審核的退票訂單列表
+  async getUserOrderRefundList(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const userOrder = await UserOrderModel.find({
+      orderStatus: OrderStatus.InReview
+    },'_id orderNumber buyer cellPhone email activityInfo.title').lean();
+    
+    handleSuccess(res, userOrder)
+  },
   // 退票內容 api
   async getUserOrderRefund(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;

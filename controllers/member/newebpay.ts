@@ -82,7 +82,7 @@ const newebpay = {
               }
               li {
                 border: 1px solid #e3e3e3;
-                width: 25%;
+                width: 40%;
                 padding: 8px;
               }
               .lh {

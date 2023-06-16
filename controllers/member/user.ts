@@ -14,7 +14,7 @@ import * as jwt from 'jsonwebtoken';
 import redisClient from '../../connections/connectRedis';
 import { transporter, mailOptions } from '../../service/email';
 import { OrderStatus, TicketStatus, UserOrder, UserOrderModel } from '../../models/userOrderModel';
-import { createMpgAesEncrypt, createMpgShaEncrypt} from '../../service/crypto';
+import { createMpgAesEncrypt, createMpgShaEncrypt } from '../../service/crypto';
 import dayjs from 'dayjs';
 
 // 引入上傳圖片會用到的套件
@@ -28,11 +28,11 @@ const user = {
       return appError(400, '帳號或密碼錯誤', next);
     }
     const user = await User.findOne({
-        email,
-        isDisabled: false, // false 啟用 true 停用
-        role: "user"
-      }).select('+password');
-    
+      email,
+      isDisabled: false, // false 啟用 true 停用
+      role: "user"
+    }).select('+password');
+
     if (!user) {
       return appError(401, '無此會員或已停用', next);
     }
@@ -51,7 +51,7 @@ const user = {
     let { email, username, password } = req.body;
     // 檢查欄位
     const errorMsg = checkRegister(req);
-    if (errorMsg.length > 0) { 
+    if (errorMsg.length > 0) {
       return appError(400, errorMsg, next);
     }
 
@@ -147,7 +147,7 @@ const user = {
     const user = await User.findOne({ _id: userId }).select('+password');
 
     if (user) {
-      if(user.password) {
+      if (user.password) {
         const checkPassword = await bcrypt.compare(password, user.password);
         if (!checkPassword) {
           return appError(400, '原密碼不正確', next);
@@ -271,7 +271,7 @@ const user = {
     let aesEncrypt;
     let shaEncrypt;
 
-    if(userOrderInfo) {
+    if (userOrderInfo) {
       // 藍新金流資訊
       const TradeInfo = {
         TimeStamp,
@@ -287,8 +287,8 @@ const user = {
     const json = {
       order: userOrderInfo,
       TimeStamp, // Unix 格式
-			MerchantID: process.env.MerchantID,
-			Version: process.env.Version,
+      MerchantID: process.env.MerchantID,
+      Version: process.env.Version,
       aesEncrypt,
       shaEncrypt
     }
@@ -320,19 +320,26 @@ const user = {
       return appError(400, '查無此訂單', next);
     }
 
-    // 更新所有票券的狀態為 "Refunded"
+    const ticketStatus = (existingUserOrder.orderStatus === OrderStatus.PendingPayment)
+      ? TicketStatus.Refunded
+      : TicketStatus.InReview;
+    const orderStatus = (existingUserOrder.orderStatus === OrderStatus.PendingPayment)
+      ? OrderStatus.Refunded
+      : OrderStatus.InReview;
+
+    // 更新所有票券的狀態為 "Refunded" 或 "InReview"
     existingUserOrder.ticketList.forEach(ticket => {
-      ticket.ticketStatus = TicketStatus.Refunded;
+      ticket.ticketStatus = ticketStatus;
     });
 
     // 檢查是否所有票券都已退票
     const allTicketsRefunded = existingUserOrder.ticketList.every(
-      ticket => ticket.ticketStatus === TicketStatus.Refunded
+      ticket => (ticket.ticketStatus === TicketStatus.Refunded || ticket.ticketStatus === TicketStatus.InReview) 
     );
 
-    // 如果所有票券都已退票，則將訂單狀態更新為 "Refunded"
+    // 如果所有票券都已退票，則將訂單狀態更新為 "Refunded" 或 "InReview"
     if (allTicketsRefunded) {
-      existingUserOrder.orderStatus = OrderStatus.Refunded;
+      existingUserOrder.orderStatus = orderStatus;
     }
 
     // 更新訂單和票券狀態
@@ -346,7 +353,7 @@ const user = {
       }
     );
 
-    handleSuccess(res, "退票成功");
+    handleSuccess(res, "成功");
   },
   // 取得訂單QRcode狀態(只取狀態)
   async getOrderQRcodeStatus(req: AuthRequest, res: Response, next: NextFunction) {
