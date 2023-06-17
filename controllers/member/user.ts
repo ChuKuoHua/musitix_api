@@ -142,9 +142,14 @@ const user = {
   },
   // NOTE 更新密碼
   async updatePassword(req: AuthRequest, res: Response, next: NextFunction) {
-    let { password, newPassword, confirmPassword } = req.body;
+    let { password, confirmPassword } = req.body;
+    let newPassword = req.body?.newPassword;
     const userId = req.user.id;
     const user = await User.findOne({ _id: userId }).select('+password');
+
+    if (!newPassword) {
+      return appError(400, '請輸入新密碼', next);
+    }
 
     if (user) {
       if (user.password) {
@@ -152,10 +157,6 @@ const user = {
         if (!checkPassword) {
           return appError(400, '原密碼不正確', next);
         }
-      }
-
-      if (!newPassword) {
-        return appError(400, '請輸入新密碼', next);
       }
       if (password === newPassword) {
         return appError(400, '新密碼不可與原密碼相同', next);
