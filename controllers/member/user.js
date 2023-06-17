@@ -178,19 +178,21 @@ const user = {
     },
     // NOTE 更新密碼
     updatePassword(req, res, next) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            let { password, newPassword, confirmPassword } = req.body;
+            let { password, confirmPassword } = req.body;
+            let newPassword = (_a = req.body) === null || _a === void 0 ? void 0 : _a.newPassword;
             const userId = req.user.id;
             const user = yield usersModel_1.default.findOne({ _id: userId }).select('+password');
+            if (!newPassword) {
+                return (0, appError_1.default)(400, '請輸入新密碼', next);
+            }
             if (user) {
                 if (user.password) {
                     const checkPassword = yield bcryptjs_1.default.compare(password, user.password);
                     if (!checkPassword) {
                         return (0, appError_1.default)(400, '原密碼不正確', next);
                     }
-                }
-                if (!newPassword) {
-                    return (0, appError_1.default)(400, '請輸入新密碼', next);
                 }
                 if (password === newPassword) {
                     return (0, appError_1.default)(400, '新密碼不可與原密碼相同', next);
