@@ -108,7 +108,7 @@ const memberManage = {
             const limitNum = limit ? Number(limit) : 25;
             const data = yield userOrderModel_1.UserOrderModel.find({
                 userId: userId
-            }, 'buyer activityId cellPhone orderNumber orderStatus orderCreateDate memo ticketList.scheduleName ticketList.categoryName ticketList.price ticketList.ticketNumber ticketList.ticketStatus activityInfo.title activityInfo.totalAmount activityInfo.ticketTotalCount').skip((pageNum - 1) * limitNum)
+            }, 'buyer activityId cellPhone orderNumber orderStatus orderCreateDate memo ticketList.scheduleName ticketList.categoryName ticketList.price ticketList.ticketNumber ticketList.ticketStatus activityInfo.title activityInfo.totalAmount activityInfo.ticketTotalCount email address').skip((pageNum - 1) * limitNum)
                 .limit(limitNum).lean();
             // 取得總數量
             const count = yield userOrderModel_1.UserOrderModel.countDocuments({ userId: userId });

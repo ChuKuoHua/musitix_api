@@ -177,6 +177,12 @@ const activity = {
         return __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
             const { ticketList, buyer, cellPhone, email, address, memo } = req.body;
+            if (buyer === ' '
+                || cellPhone === ' '
+                || email === ' '
+                || address === ' ') {
+                return next((0, appError_1.default)(400, '欄位填寫不完整', next));
+            }
             if (!ticketList.length) {
                 return next((0, appError_1.default)(400, 'ticketList is invalid', next));
             }
