@@ -94,7 +94,7 @@ const memberManage = {
     const limitNum: number = limit ? Number(limit) : 25;
     const data: any = await UserOrderModel.find({
       userId: userId
-    }, 'buyer activityId cellPhone orderNumber orderStatus orderCreateDate memo ticketList.scheduleName ticketList.categoryName ticketList.price ticketList.ticketNumber ticketList.ticketStatus activityInfo.title activityInfo.totalAmount activityInfo.ticketTotalCount'
+    }, 'buyer activityId cellPhone orderNumber orderStatus orderCreateDate memo ticketList.scheduleName ticketList.categoryName ticketList.price ticketList.ticketNumber ticketList.ticketStatus activityInfo.title activityInfo.totalAmount activityInfo.ticketTotalCount email address'
     ).skip((pageNum - 1) * limitNum)
     .limit(limitNum).lean();
 
