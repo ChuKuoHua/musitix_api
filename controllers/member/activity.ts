@@ -147,6 +147,14 @@ const activity = {
       address,
       memo
     } = req.body;
+    
+    if(buyer === ' '
+      || cellPhone === ' '
+      || email === ' '
+      || address === ' '
+    ) {
+      return next(appError(400, '欄位填寫不完整', next));
+    }
 
     if (!ticketList.length) {
       return next(appError(400, 'ticketList is invalid', next));
